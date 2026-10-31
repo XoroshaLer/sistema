@@ -327,18 +327,29 @@ textarea {
   flex-shrink: 0;
 }
 
-.hero .art {
+.hero .photo,
+.hero .tint {
   position: absolute;
-  right: -14px;
+  right: 0;
   top: 0;
+  width: 66%;
   height: 100%;
-  width: 200px;
+}
+
+.hero .photo {
+  object-fit: cover;
+}
+
+.hero .tint {
+  background: #1d3d5e;
+  mix-blend-mode: color;
+  opacity: 0.45;
 }
 
 .hero .fade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, var(--card) 0%, var(--card) 42%, rgba(20, 27, 34, 0.55) 64%, rgba(20, 27, 34, 0) 88%);
+  background: linear-gradient(90deg, var(--card) 0%, var(--card) 36%, rgba(20, 27, 34, 0.6) 58%, rgba(20, 27, 34, 0) 86%);
 }
 
 .hero .body {

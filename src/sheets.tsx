@@ -321,6 +321,7 @@ function SettingsSheet({ data, nav, close }: { data: AppData; nav: Nav; close: (
 
       <Label>Установка на iPhone</Label>
       <span className="sub">Открой приложение в Safari → «Поделиться» → «На экран „Домой“». После этого оно работает и без интернета.</span>
+      <span className="sub muted">Фото в карточках тренировок — Unsplash.</span>
 
       <button
         type="button"

@@ -63,7 +63,7 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
 
       {active ? (
         <>
-          <Hero>
+          <Hero day={active.day}>
             <Label>Тренировка идёт</Label>
             <div className="h1">День {active.day}<br />{DAY_TITLE[active.day]}</div>
             <div className="meta">
@@ -78,7 +78,7 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
         </>
       ) : next ? (
         <>
-          <Hero>
+          <Hero day={next}>
             <Label>{DAY_WEEKDAY[next] === wd ? 'Задание дня' : 'Следующая тренировка'}</Label>
             <div className="h1">День {next}<br />{DAY_TITLE[next]}</div>
             <div className="meta">
@@ -103,7 +103,7 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
           </button>
         </>
       ) : (
-        <Hero>
+        <Hero day="C">
           <Label>Неделя закрыта</Label>
           <div className="h1">Все 4 тренировки<br />выполнены</div>
           <div className="sub">Отдых — тоже часть системы. Новая неделя начнётся в понедельник.</div>

@@ -182,7 +182,7 @@ export function WorkoutActive({ data, session, nav }: { data: AppData; session: 
         </div>
       </div>
 
-      <Hero>
+      <Hero day={session.day}>
         <Label>{ex.optional ? `Опционально · ${ex.goal}` : ex.goal}</Label>
         <div className="h1">{ex.name}</div>
         <div className="meta">
@@ -308,7 +308,7 @@ export function WorkoutSummary({ data, sessionId, nav, onClose }: { data: AppDat
   return (
     <>
       <TopBar left="Тренировка" mid={`День ${session.day} · ${DAY_SHORT[session.day]}`} />
-      <Hero>
+      <Hero day={session.day}>
         <Label>Тренировка завершена</Label>
         <div className="h1">День {session.day}<br />{DAY_TITLE[session.day]}</div>
         <div className="meta">+{sessionXp(session, a.prs)} XP · уровень {a.level}</div>

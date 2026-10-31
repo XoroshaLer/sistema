@@ -15,7 +15,7 @@ export function Onboarding() {
       <div className="topbar">
         <span className="t-left">Система</span>
       </div>
-      <Hero>
+      <Hero day="D">
         <Label>Пробуждение</Label>
         <div className="h1">Добро пожаловать<br />в Систему</div>
         <div className="sub">16 недель, 4 тренировки в неделю. Каждый подход — опыт, каждая неделя — шаг к новому уровню.</div>

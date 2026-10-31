@@ -1,5 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
+import type { Day } from './data/program';
 import { num, parseNum } from './lib/format';
+import { DAY_PHOTO } from './photos';
 
 export type IconName =
   | 'user' | 'dumbbell' | 'chart' | 'book' | 'gear' | 'check' | 'left' | 'right' | 'down'
@@ -174,34 +176,12 @@ export function Topo() {
   );
 }
 
-/** Placeholder art for the hero cards until there is a real photo. */
-export function DumbbellArt() {
-  return (
-    <svg className="art" viewBox="0 0 190 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="db-face" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#525B64" /><stop offset="1" stopColor="#181D22" /></linearGradient>
-        <linearGradient id="db-bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6C757E" /><stop offset="1" stopColor="#262C32" /></linearGradient>
-        <linearGradient id="db-bench" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#232930" /><stop offset="1" stopColor="#0D1014" /></linearGradient>
-      </defs>
-      <polygon points="0,170 190,40 190,170" fill="url(#db-bench)" />
-      <polyline points="0,170 190,40" fill="none" stroke="#39424B" strokeWidth="1" />
-      <polygon points="105,69 88,98.4 54,98.4 37,69 54,39.6 88,39.6" fill="#0F1215" />
-      <polygon points="96,62 79,91.4 45,91.4 28,62 45,32.6 79,32.6" fill="url(#db-face)" stroke="#59626B" strokeWidth="1" />
-      <polygon points="82,62 72,79.6 52,79.6 42,62 52,44.4 72,44.4" fill="none" stroke="#2B3238" strokeWidth="1.2" />
-      <line x1="84" y1="80" x2="124" y2="112" stroke="url(#db-bar)" strokeWidth="13" />
-      <line x1="88" y1="83" x2="120" y2="109" stroke="#8A939C" strokeWidth="8" strokeDasharray="1.2 2.4" opacity="0.35" />
-      <polygon points="174,116 152,154.1 108,154.1 86,116 108,77.9 152,77.9" fill="#0F1215" />
-      <polygon points="184,124 162,162.1 118,162.1 96,124 118,85.9 162,85.9" fill="url(#db-face)" stroke="#59626B" strokeWidth="1" />
-      <polygon points="166.4,124 153.2,146.9 126.8,146.9 113.6,124 126.8,101.1 153.2,101.1" fill="none" stroke="#2B3238" strokeWidth="1.2" />
-      <circle cx="140" cy="124" r="6" fill="#2B3238" />
-    </svg>
-  );
-}
-
-export function Hero({ children }: { children: ReactNode }) {
+/** Card with a photo on the right fading into the card background. */
+export function Hero({ day, children }: { day: Day; children: ReactNode }) {
   return (
     <section className="hero">
-      <DumbbellArt />
+      <img className="photo" src={DAY_PHOTO[day]} alt="" />
+      <div className="tint" />
       <div className="fade" />
       <div className="body">{children}</div>
     </section>
