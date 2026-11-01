@@ -21,6 +21,7 @@ import { XP, analyze } from './lib/logic';
 import type { Nav, SheetState } from './nav';
 import { CARDIO_LABEL } from './screens/Progress';
 import { getData, resetData, type AppData, type CardioKind, type WeekCheck } from './store';
+import { checkForUpdate } from './sw-register';
 import { Chips, Icon, Label, Sheet, Stepper } from './ui';
 
 const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е').trim();
@@ -489,8 +490,23 @@ function SettingsSheet({ data, nav, close }: { data: AppData; nav: Nav; close: (
         <span>Сила — рекорды, выносливость — минуты кардио, дисциплина — завершённые тренировки.</span>
       </div>
 
-      <Label>Установка на iPhone</Label>
-      <span className="sub">Открой приложение в Safari → «Поделиться» → «На экран „Домой“». После этого оно работает и без интернета.</span>
+      <Label>Приложение</Label>
+      <span className="sub">
+        Версия от {fmtDay(iso(new Date(__BUILD_TIME__))).toLowerCase()}, {new Date(__BUILD_TIME__).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}. Обновления подтягиваются сами, когда открываешь приложение с интернетом.
+      </span>
+      <button
+        type="button"
+        className="btn"
+        onClick={async () => {
+          const r = await checkForUpdate();
+          if (r === 'updating') nav.toast('Нашлась новая версия', 'Приложение перезапустится через пару секунд');
+          else if (r === 'offline') nav.toast('Нет связи', 'Проверь интернет и попробуй ещё раз');
+          else nav.toast('Это последняя версия');
+        }}
+      >
+        <Icon name="download" size={16} /> Проверить обновления
+      </button>
+      <span className="sub">Установка: открой приложение в Safari → «Поделиться» → «На экран „Домой“». После этого оно работает и без интернета.</span>
       <span className="sub muted">Фото в карточках тренировок — Unsplash.</span>
 
       <button

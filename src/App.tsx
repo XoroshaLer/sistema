@@ -10,6 +10,7 @@ import { StatusScreen } from './screens/Status';
 import { WorkoutActive, WorkoutPick, WorkoutSummary } from './screens/Workout';
 import { SheetHost } from './sheets';
 import { useData } from './store';
+import { takeUpdatedFlag } from './sw-register';
 import { Icon, Topo, type IconName } from './ui';
 
 const TABS: { tab: Tab; label: string; icon: IconName }[] = [
@@ -48,6 +49,10 @@ export function App() {
     }),
     [],
   );
+
+  useEffect(() => {
+    if (takeUpdatedFlag()) nav.toast('Приложение обновлено', 'Новая версия уже работает');
+  }, [nav]);
 
   useEffect(() => {
     if (!toast) return;

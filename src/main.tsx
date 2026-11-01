@@ -6,6 +6,9 @@ import '@fontsource/exo-2/600.css';
 import '@fontsource/exo-2/700.css';
 import './styles.css';
 import { App } from './App';
+import { registerServiceWorker } from './sw-register';
+
+registerServiceWorker();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
