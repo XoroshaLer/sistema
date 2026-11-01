@@ -11,6 +11,9 @@ import {
   doneDays,
   estimateMinutes,
   estimateXp,
+  kcalOn,
+  kcalOnTarget,
+  kcalTarget,
   nextDay,
   proteinOn,
   proteinTarget,
@@ -34,6 +37,8 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
   const target = cardioTarget(week);
   const protein = proteinOn(data, t);
   const proteinGoal = proteinTarget(data).target;
+  const kcal = kcalOn(data, t);
+  const kcalGoal = kcalTarget(data).target;
   const wd = weekday(t);
   const checkWeek = wd === 0 ? week : wd <= 2 && week > 1 && !data.weeks[String(week - 1)] ? week - 1 : null;
 
@@ -143,12 +148,20 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
         </button>
         <button type="button" className="row with-check" onClick={() => nav.open({ type: 'food' })}>
           <span className="sq"><Icon name="bowl" size={18} /></span>
-          <span className="grow stack" style={{ gap: 6, paddingRight: 4 }}>
-            <span className="title">Белок за день</span>
-            <Bar value={protein / proteinGoal} />
+          <span className="grow stack" style={{ gap: 5, padding: '6px 4px 6px 0' }}>
+            <span className="title">Питание</span>
+            <span className="food-line">
+              <span>Белок</span>
+              <Bar value={protein / proteinGoal} />
+              <span>{protein} / {proteinGoal} г</span>
+            </span>
+            <span className="food-line">
+              <span>Ккал</span>
+              <Bar value={kcalGoal ? kcal / kcalGoal : 0} tone={kcalGoal && kcal > kcalGoal * 1.05 ? 'warn' : undefined} />
+              <span>{kcalGoal ? `${kcal} / ${kcalGoal}` : `${kcal} · норма?`}</span>
+            </span>
           </span>
-          <span className="val">{protein} / {proteinGoal} г</span>
-          <Check on={protein >= proteinGoal} />
+          <Check on={protein >= proteinGoal && (!kcalGoal || kcalOnTarget(kcal, kcalGoal))} />
         </button>
         {checkWeek !== null && (
           <button type="button" className="row with-check" onClick={() => nav.open({ type: 'week', week: checkWeek })}>

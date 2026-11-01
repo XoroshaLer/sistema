@@ -63,9 +63,9 @@ export function TopBar({ left, mid, right }: { left: ReactNode; mid?: ReactNode;
   );
 }
 
-export function Bar({ value }: { value: number }) {
+export function Bar({ value, tone }: { value: number; tone?: 'warn' }) {
   return (
-    <div className="bar">
+    <div className={`bar${tone ? ` ${tone}` : ''}`}>
       <i style={{ width: `${Math.max(0, Math.min(1, value)) * 100}%` }} />
     </div>
   );

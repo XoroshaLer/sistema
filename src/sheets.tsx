@@ -486,7 +486,7 @@ function SettingsSheet({ data, nav, close }: { data: AppData; nav: Nav; close: (
       <Label>Как растёт уровень</Label>
       <div className="note-box" style={{ flexDirection: 'column', gap: 4 }}>
         <span>Подход +{XP.set} · упражнение целиком +{XP.exercise} · рекорд +{XP.pr} · тренировка +{XP.workout}</span>
-        <span>Кардио +1 за минуту · белок по норме за день +{XP.protein} · итоги недели +{XP.week}</span>
+        <span>Кардио +1 за минуту · белок по норме +{XP.protein} · калории в норме +{XP.kcal} · итоги недели +{XP.week}</span>
         <span>Сила — рекорды, выносливость — минуты кардио, дисциплина — завершённые тренировки.</span>
       </div>
 

@@ -543,6 +543,30 @@ textarea {
   background: var(--accent-2);
 }
 
+.bar.warn > i {
+  background: var(--warn);
+}
+
+.food-line {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.food-line .bar {
+  height: 4px;
+}
+
+.food-line > span:last-child {
+  min-width: 78px;
+  text-align: right;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
 .segbar {
   display: grid;
   gap: 4px;

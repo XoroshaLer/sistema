@@ -89,7 +89,7 @@ export function recordBefore(data: AppData, exId: string, before: number): SetLo
 
 export const needFor = (level: number) => 150 + 50 * level;
 
-export const XP = { set: 3, exercise: 10, pr: 20, workout: 50, cardioCap: 60, protein: 10, week: 30 };
+export const XP = { set: 3, exercise: 10, pr: 20, workout: 50, cardioCap: 60, protein: 10, kcal: 10, week: 30 };
 
 export interface Analysis {
   /** `${sessionId}:${exId}` for every session where the exercise beat its earlier record. */
@@ -147,9 +147,11 @@ export function analyze(data: AppData): Analysis {
   }
 
   const target = proteinTarget(data).target;
+  const kcalGoal = kcalTarget(data).target;
   for (const [date, list] of Object.entries(data.food)) {
     if (list.reduce((n, f) => n + f.protein, 0) >= target) xp += XP.protein;
     else if ((data.protein[date] ?? 0) >= 3) xp += XP.protein;
+    if (kcalGoal && kcalOnTarget(list.reduce((n, f) => n + (f.kcal ?? 0), 0), kcalGoal)) xp += XP.kcal;
   }
   for (const [date, n] of Object.entries(data.protein)) if (n >= 3 && !data.food[date]) xp += XP.protein;
   xp += Object.keys(data.weeks).length * XP.week;
@@ -261,4 +263,29 @@ export function proteinTarget(data: AppData): { target: number; lo?: number; hi?
 
 export function proteinOn(data: AppData, date: string): number {
   return Math.round((data.food[date] ?? []).reduce((n, f) => n + f.protein, 0));
+}
+
+export function kcalOn(data: AppData, date: string): number {
+  return Math.round((data.food[date] ?? []).reduce((n, f) => n + (f.kcal ?? 0), 0));
+}
+
+const round10 = (n: number) => Math.round(n / 10) * 10;
+
+/**
+ * Daily calories: maintenance by Mifflin–St Jeor × activity, minus the chosen deficit.
+ * Undefined until weight, height and age are known (or an own goal is set).
+ */
+export function kcalTarget(data: AppData): { target?: number; maintenance?: number; manual?: boolean } {
+  const s = data.settings;
+  if (s.kcalManual) return { target: s.kcalManual, manual: true };
+  const weight = latestWeight(data);
+  if (!weight || !s.heightCm || !s.age) return {};
+  const bmr = 10 * weight + 6.25 * s.heightCm - 5 * s.age + (s.sex === 'm' ? 5 : -161);
+  const maintenance = round10(bmr * s.activity);
+  return { maintenance, target: round10(maintenance * (1 - s.deficitPct / 100)) };
+}
+
+/** A logged day counts as on target within 90–105% of the calorie goal. */
+export function kcalOnTarget(kcal: number, target: number): boolean {
+  return kcal >= target * 0.9 && kcal <= target * 1.05;
 }

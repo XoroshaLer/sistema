@@ -166,9 +166,9 @@ export function createExercise(name: string): string {
   return id;
 }
 
-export function addFood(date: string, meal: Meal, name: string, protein: number) {
+export function addFood(date: string, meal: Meal, name: string, protein: number, kcal: number) {
   update((d) => {
-    (d.food[date] ??= []).push({ id: uid(), meal, name, protein: Math.round(protein * 10) / 10, t: Date.now() });
+    (d.food[date] ??= []).push({ id: uid(), meal, name, protein: Math.round(protein * 10) / 10, kcal: Math.round(kcal), t: Date.now() });
   });
 }
 

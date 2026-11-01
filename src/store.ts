@@ -69,6 +69,16 @@ export interface Settings {
   proteinPerKg: number;
   /** Body weight for the protein goal until a weekly check-in has one. */
   bodyWeight?: number;
+  /** For the calorie estimate (Mifflin–St Jeor). */
+  heightCm?: number;
+  age?: number;
+  sex: 'f' | 'm';
+  /** Activity multiplier for maintenance calories. */
+  activity: number;
+  /** Planned calorie deficit, % below maintenance. */
+  deficitPct: number;
+  /** Own calorie goal; replaces the estimate when set. */
+  kcalManual?: number;
 }
 
 export interface CustomExercise {
@@ -90,15 +100,18 @@ export interface FoodEntry {
   meal: Meal;
   name: string;
   protein: number;
+  /** Missing on entries made before calories were tracked. */
+  kcal?: number;
   t: number;
 }
 
 export interface FoodPreset {
   id: string;
   name: string;
-  /** 'шт': `per` grams of protein per piece; 'г': per 100 g. */
+  /** 'шт': `per` and `kcal` are per piece; 'г': per 100 g. */
   unit: 'шт' | 'г';
   per: number;
+  kcal?: number;
   portion: number;
 }
 
@@ -127,7 +140,15 @@ export interface AppData {
 }
 
 const KEY = 'sistema.v1';
-export const DEFAULT_SETTINGS: Settings = { restMain: 150, restOther: 90, sound: true, proteinPerKg: 1.6 };
+export const DEFAULT_SETTINGS: Settings = {
+  restMain: 150,
+  restOther: 90,
+  sound: true,
+  proteinPerKg: 1.6,
+  sex: 'f',
+  activity: 1.55,
+  deficitPct: 10,
+};
 
 function empty(): AppData {
   return {
