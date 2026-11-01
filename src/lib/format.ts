@@ -16,7 +16,7 @@ interface WR {
 
 export function setText(s: WR, ex: Exercise): string {
   if (ex.assisted) return `помощь ${num(s.w)} кг × ${s.r}`;
-  if (s.w === 0 && ex.bodyweight) return `вес тела × ${s.r}`;
+  if (s.w === 0) return `вес тела × ${s.r}`;
   return `${num(s.w)} кг × ${s.r}`;
 }
 
@@ -29,8 +29,11 @@ export function setsText(sets: WR[], ex: Exercise): string {
   return sets.map((s) => `${num(s.w)} × ${s.r}`).join(' · ');
 }
 
-export function repsText(ex: Exercise): string {
-  return `${ex.repMin}–${ex.repMax}${ex.per ? ` / ${ex.per}` : ''}`;
+/** '8–12 / нога' from a plan slot, naming the side the program uses for one-side exercises. */
+export function repsText(plan: { repMin: number; repMax: number; perSide?: boolean }, ex?: Exercise): string {
+  const range = plan.repMin === plan.repMax ? String(plan.repMin) : `${plan.repMin}–${plan.repMax}`;
+  const per = ex?.per ?? (plan.perSide ? 'сторона' : undefined);
+  return `${range}${per ? ` / ${per}` : ''}`;
 }
 
 export function rirText(rir: number): string {

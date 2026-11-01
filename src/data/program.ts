@@ -108,8 +108,37 @@ export const PROGRAM: Record<Block, Record<Day, Exercise[]>> = {
   },
 };
 
+/** One exercise slot in a workout: which exercise and how much of it. */
+export interface PlanItem {
+  exId: string;
+  sets: number;
+  repMin: number;
+  repMax: number;
+  /** Log left and right separately. */
+  perSide?: boolean;
+}
+
+export function itemOf(e: Exercise): PlanItem {
+  return { exId: e.id, sets: e.sets, repMin: e.repMin, repMax: e.repMax, perSide: !!e.per };
+}
+
+export function defaultPlan(block: Block, day: Day): PlanItem[] {
+  return PROGRAM[block][day].map(itemOf);
+}
+
 const BY_ID = new Map<string, Exercise>();
 const DAY_OF = new Map<string, Day>();
+const CUSTOM = new Map<string, Exercise>();
+
+/** Exercises the user created; kept in sync by the store. */
+export function setCustomExercises(list: { id: string; name: string }[]) {
+  CUSTOM.clear();
+  for (const c of list) CUSTOM.set(c.id, { id: c.id, name: c.name, sets: 2, repMin: 10, repMax: 12, rir: 2, goal: 'Своё упражнение' });
+}
+
+export function customIds(): string[] {
+  return [...CUSTOM.keys()];
+}
 for (const block of [1, 2] as Block[]) {
   for (const day of DAYS) {
     for (const e of PROGRAM[block][day]) {
@@ -120,19 +149,16 @@ for (const block of [1, 2] as Block[]) {
 }
 
 export function EX(id: string): Exercise | undefined {
-  return BY_ID.get(id);
+  return BY_ID.get(id) ?? CUSTOM.get(id);
 }
 
-export function dayOf(id: string): Day {
-  return DAY_OF.get(id) ?? 'A';
+/** Program day the exercise belongs to; undefined for the user's own exercises. */
+export function dayOf(id: string): Day | undefined {
+  return DAY_OF.get(id);
 }
 
 /** Exercise ids in program order, without duplicates. */
 export const EXERCISE_ORDER: string[] = [...BY_ID.keys()];
-
-export function planFor(block: Block, day: Day): Exercise[] {
-  return PROGRAM[block][day];
-}
 
 export function blockOf(week: number): Block {
   return week <= 8 ? 1 : 2;

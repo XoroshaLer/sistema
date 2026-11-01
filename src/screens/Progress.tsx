@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { deleteCardio, exportData } from '../actions';
 import { BarChart, LineChart, MiniBars } from '../charts';
-import { EX, EXERCISE_ORDER, blockOf, dayOf } from '../data/program';
+import { EX, EXERCISE_ORDER, blockOf, customIds, dayOf } from '../data/program';
 import { fmtDay, programWeek, today } from '../lib/dates';
 import { num, setText } from '../lib/format';
 import { analyze, cardioTarget, cardioWeek, weeklyBest } from '../lib/logic';
@@ -85,7 +85,7 @@ function deltaText(exId: string, a: ReturnType<typeof analyze>): string {
 
 function Strength({ data, week, nav }: { data: AppData; week: number; nav: Nav }) {
   const a = useMemo(() => analyze(data), [data]);
-  const ids = EXERCISE_ORDER.filter((id) => a.best.has(id));
+  const ids = [...EXERCISE_ORDER, ...customIds()].filter((id) => a.best.has(id));
   const latest = useMemo(() => {
     const s = [...data.sessions].sort((x, y) => y.startedAt - x.startedAt).find((x) => x.exercises.some((e) => e.sets.length));
     return s?.exercises.find((e) => e.sets.length)?.exId;
@@ -135,7 +135,7 @@ function Strength({ data, week, nav }: { data: AppData; week: number; nav: Nav }
                 heroRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
             >
-              <span className="sq">{dayOf(id)}</span>
+              <span className="sq">{dayOf(id) ?? <Icon name="user" size={16} />}</span>
               <span className="grow stack" style={{ gap: 0 }}>
                 <span className="title ellipsis" style={{ fontSize: 14 }}>{e.name}</span>
                 <span className="sub">{setText(a.best.get(id)!, e)}</span>

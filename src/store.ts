@@ -1,13 +1,15 @@
 // All data lives in one JSON document in localStorage. The same document is the backup file.
 
 import { useSyncExternalStore } from 'react';
-import type { Block, Day } from './data/program';
+import { setCustomExercises, type Block, type Day, type PlanItem } from './data/program';
 
 export interface SetLog {
   w: number;
   r: number;
   rir: number;
   t: number;
+  /** Set on one-side sets; a left and the following right entry make one set. */
+  side?: 'L' | 'R';
 }
 
 export interface ExLog {
@@ -15,6 +17,8 @@ export interface ExLog {
   sets: SetLog[];
   note?: string;
   skipped?: boolean;
+  /** How this exercise was planned when the workout started. Missing on early sessions. */
+  plan?: Omit<PlanItem, 'exId'>;
 }
 
 export interface Session {
@@ -22,7 +26,11 @@ export interface Session {
   date: string;
   week: number;
   block: Block;
-  day: Day;
+  /** Program day; missing for the user's own workouts. */
+  day?: Day;
+  routineId?: string;
+  title?: string;
+  photo?: Day;
   startedAt: number;
   finishedAt?: number;
   cursor: number;
@@ -57,6 +65,41 @@ export interface Settings {
   restMain: number;
   restOther: number;
   sound: boolean;
+  /** Daily protein goal in grams per kilogram of body weight. */
+  proteinPerKg: number;
+  /** Body weight for the protein goal until a weekly check-in has one. */
+  bodyWeight?: number;
+}
+
+export interface CustomExercise {
+  id: string;
+  name: string;
+}
+
+export interface Routine {
+  id: string;
+  name: string;
+  photo: Day;
+  items: PlanItem[];
+}
+
+export type Meal = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export interface FoodEntry {
+  id: string;
+  meal: Meal;
+  name: string;
+  protein: number;
+  t: number;
+}
+
+export interface FoodPreset {
+  id: string;
+  name: string;
+  /** 'шт': `per` grams of protein per piece; 'г': per 100 g. */
+  unit: 'шт' | 'г';
+  per: number;
+  portion: number;
 }
 
 export interface Profile {
@@ -70,17 +113,36 @@ export interface AppData {
   sessions: Session[];
   cardio: Cardio[];
   weeks: Record<string, WeekCheck>;
+  /** Old «белок в каждом приёме» counter (0–3 meals); replaced by `food`. */
   protein: Record<string, number>;
   settings: Settings;
   activeId?: string;
   lastBackup?: number;
+  /** Edited program days, keyed `${block}${day}` ('1D'); missing = as in the program. */
+  plans: Record<string, PlanItem[]>;
+  routines: Routine[];
+  customExercises: CustomExercise[];
+  food: Record<string, FoodEntry[]>;
+  foodPresets: FoodPreset[];
 }
 
 const KEY = 'sistema.v1';
-export const DEFAULT_SETTINGS: Settings = { restMain: 150, restOther: 90, sound: true };
+export const DEFAULT_SETTINGS: Settings = { restMain: 150, restOther: 90, sound: true, proteinPerKg: 1.6 };
 
 function empty(): AppData {
-  return { v: 1, sessions: [], cardio: [], weeks: {}, protein: {}, settings: { ...DEFAULT_SETTINGS } };
+  return {
+    v: 1,
+    sessions: [],
+    cardio: [],
+    weeks: {},
+    protein: {},
+    settings: { ...DEFAULT_SETTINGS },
+    plans: {},
+    routines: [],
+    customExercises: [],
+    food: {},
+    foodPresets: [],
+  };
 }
 
 /** Accepts parsed JSON from storage or a backup file; returns null when it is not our data. */
@@ -88,13 +150,20 @@ export function normalize(raw: unknown): AppData | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Partial<AppData>;
   if (r.v !== 1 || !Array.isArray(r.sessions) || !Array.isArray(r.cardio)) return null;
+  // Fields added in later versions get their defaults, so older backups and phones keep working.
+  const base = empty();
   return {
-    ...empty(),
+    ...base,
     ...r,
     v: 1,
     weeks: r.weeks ?? {},
     protein: r.protein ?? {},
     settings: { ...DEFAULT_SETTINGS, ...(r.settings ?? {}) },
+    plans: r.plans ?? {},
+    routines: r.routines ?? [],
+    customExercises: r.customExercises ?? [],
+    food: r.food ?? {},
+    foodPresets: r.foodPresets ?? [],
   } as AppData;
 }
 
@@ -112,9 +181,11 @@ function load(): AppData {
 }
 
 let state = load();
+setCustomExercises(state.customExercises);
 const listeners = new Set<() => void>();
 
 function persist() {
+  setCustomExercises(state.customExercises);
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
   } catch {

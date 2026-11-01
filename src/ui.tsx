@@ -6,7 +6,7 @@ import { DAY_PHOTO } from './photos';
 export type IconName =
   | 'user' | 'dumbbell' | 'chart' | 'book' | 'gear' | 'check' | 'left' | 'right' | 'down'
   | 'plus' | 'download' | 'upload' | 'lock' | 'pulse' | 'bowl' | 'calendar' | 'ruler'
-  | 'pen' | 'trash' | 'clock' | 'target' | 'info' | 'trend' | 'walk' | 'x' | 'skip';
+  | 'pen' | 'trash' | 'clock' | 'target' | 'info' | 'trend' | 'walk' | 'x' | 'skip' | 'swap' | 'up' | 'search' | 'home';
 
 const PATHS: Record<IconName, ReactNode> = {
   user: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>),
@@ -35,6 +35,10 @@ const PATHS: Record<IconName, ReactNode> = {
   walk: (<><circle cx="13" cy="4" r="2" /><path d="M9 21l2-6 3 3v3M7 12l3-4 4 1 2 4 3 1" /></>),
   x: <path d="M6 6l12 12M18 6L6 18" />,
   skip: <path d="M6 6l8 6-8 6zM17 6v12" />,
+  swap: <path d="M4 8h14l-3-3M20 16H6l3 3" />,
+  up: <path d="M6 15l6-6 6 6" />,
+  search: (<><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></>),
+  home: <path d="M4 11l8-6 8 6v9h-5v-6H9v6H4z" />,
 };
 
 export function Icon({ name, size = 20, stroke = 1.8, style }: { name: IconName; size?: number; stroke?: number; style?: CSSProperties }) {

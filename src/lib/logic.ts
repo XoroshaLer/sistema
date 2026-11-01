@@ -1,8 +1,8 @@
 // Derived numbers: records, XP, levels and stats are always recomputed from the log,
 // so editing or deleting an entry never leaves the score out of sync.
 
-import { DAYS, EX, type Day, type Exercise } from '../data/program';
-import type { AppData, Session, SetLog } from '../store';
+import { DAYS, DAY_TITLE, EX, defaultPlan, type Block, type Day, type Exercise, type PlanItem } from '../data/program';
+import type { AppData, ExLog, Session, SetLog } from '../store';
 
 interface WR {
   w: number;
@@ -18,6 +18,44 @@ export function bestOf<T extends WR>(sets: T[], ex: Exercise): T | undefined {
   let best: T | undefined;
   for (const s of sets) if (!best || better(s, best, ex)) best = s;
   return best;
+}
+
+export type Plan = Omit<PlanItem, 'exId'>;
+
+export function planOf(e: ExLog): Plan {
+  if (e.plan) return e.plan;
+  const ex = EX(e.exId);
+  return ex ? { sets: ex.sets, repMin: ex.repMin, repMax: ex.repMax } : { sets: 2, repMin: 10, repMax: 12 };
+}
+
+/** Sets as the user sees them: a one-side left entry and the right entry after it form one set. */
+export interface SetGroup {
+  both?: SetLog;
+  L?: SetLog;
+  R?: SetLog;
+  /** Positions in ExLog.sets, for deleting the whole set. */
+  idx: number[];
+}
+
+export function groupSets(sets: SetLog[]): SetGroup[] {
+  const out: SetGroup[] = [];
+  sets.forEach((s, i) => {
+    const last = out[out.length - 1];
+    if (!s.side) out.push({ both: s, idx: [i] });
+    else if (s.side === 'R' && last && last.L && !last.R) {
+      last.R = s;
+      last.idx.push(i);
+    } else out.push({ [s.side]: s, idx: [i] });
+  });
+  return out;
+}
+
+export function isComplete(g: SetGroup): boolean {
+  return !!(g.both || (g.L && g.R));
+}
+
+export function setCount(sets: SetLog[]): number {
+  return groupSets(sets).length;
 }
 
 export function sortedSessions(data: AppData): Session[] {
@@ -71,10 +109,10 @@ export interface Analysis {
 export function sessionXp(s: Session, prs: Set<string>): number {
   let xp = 0;
   for (const e of s.exercises) {
-    const ex = EX(e.exId);
-    if (!ex || !e.sets.length) continue;
-    xp += e.sets.length * XP.set;
-    if (e.sets.length >= ex.sets) xp += XP.exercise;
+    if (!EX(e.exId) || !e.sets.length) continue;
+    const n = setCount(e.sets);
+    xp += n * XP.set;
+    if (n >= planOf(e).sets) xp += XP.exercise;
     if (prs.has(`${s.id}:${e.exId}`)) xp += XP.pr;
   }
   if (s.finishedAt) xp += XP.workout;
@@ -107,7 +145,13 @@ export function analyze(data: AppData): Analysis {
     cardioMin += c.minutes;
     xp += Math.min(XP.cardioCap, c.minutes);
   }
-  for (const n of Object.values(data.protein)) if (n >= 3) xp += XP.protein;
+
+  const target = proteinTarget(data).target;
+  for (const [date, list] of Object.entries(data.food)) {
+    if (list.reduce((n, f) => n + f.protein, 0) >= target) xp += XP.protein;
+    else if ((data.protein[date] ?? 0) >= 3) xp += XP.protein;
+  }
+  for (const [date, n] of Object.entries(data.protein)) if (n >= 3 && !data.food[date]) xp += XP.protein;
   xp += Object.keys(data.weeks).length * XP.week;
 
   let level = 1;
@@ -132,13 +176,37 @@ export function analyze(data: AppData): Analysis {
   };
 }
 
+/** Program days finished this week; the user's own workouts do not count here. */
 export function doneDays(data: AppData, week: number): Set<Day> {
-  return new Set(data.sessions.filter((s) => s.week === week && s.finishedAt).map((s) => s.day));
+  const out = new Set<Day>();
+  for (const s of data.sessions) if (s.week === week && s.finishedAt && s.day && !s.routineId) out.add(s.day);
+  return out;
 }
 
 export function nextDay(data: AppData, week: number): Day | undefined {
   const done = doneDays(data, week);
   return DAYS.find((d) => !done.has(d));
+}
+
+export function planKey(block: Block, day: Day): string {
+  return `${block}${day}`;
+}
+
+/** The day's exercises as the user edited them, or as in the program. */
+export function dayPlan(data: AppData, block: Block, day: Day): PlanItem[] {
+  return data.plans[planKey(block, day)] ?? defaultPlan(block, day);
+}
+
+export function sessionTitle(s: Session): string {
+  return s.day && !s.routineId ? `Тренировка ${s.day} · ${DAY_TITLE[s.day].toLowerCase()}` : s.title ?? 'Своя тренировка';
+}
+
+export function sessionLetter(s: Session): string {
+  return s.day && !s.routineId ? s.day : (s.title ?? '+').charAt(0).toUpperCase();
+}
+
+export function sessionPhoto(s: Session): Day {
+  return s.photo ?? s.day ?? 'C';
 }
 
 export function cardioWeek(data: AppData, week: number): number {
@@ -150,13 +218,13 @@ export function cardioTarget(week: number): number {
   return 60 + Math.round((week - 1) * 6);
 }
 
-export function estimateMinutes(exs: Exercise[]): number {
-  const sets = exs.reduce((n, e) => n + e.sets, 0);
+export function estimateMinutes(items: PlanItem[]): number {
+  const sets = items.reduce((n, e) => n + e.sets * (e.perSide ? 1.6 : 1), 0);
   return Math.round((sets * 3.5 + 5) / 5) * 5;
 }
 
-export function estimateXp(exs: Exercise[]): number {
-  return exs.reduce((n, e) => n + e.sets * XP.set + XP.exercise, 0) + XP.workout;
+export function estimateXp(items: PlanItem[]): number {
+  return items.reduce((n, e) => n + e.sets * XP.set + XP.exercise, 0) + XP.workout;
 }
 
 /** Best set per program week for one exercise. */
@@ -172,4 +240,25 @@ export function weeklyBest(data: AppData, exId: string): { week: number; set: Se
     if (!cur || better(top, cur, ex)) byWeek.set(s.week, top);
   }
   return [...byWeek.entries()].sort((a, b) => a[0] - b[0]).map(([week, set]) => ({ week, set }));
+}
+
+export function latestWeight(data: AppData): number | undefined {
+  const withWeight = Object.values(data.weeks).filter((w) => w.weight).sort((a, b) => b.week - a.week);
+  return withWeight[0]?.weight ?? data.settings.bodyWeight;
+}
+
+/** Daily protein goal: the chosen g/kg × body weight; 1.4–2.0 g/kg is the range from the program. */
+export function proteinTarget(data: AppData): { target: number; lo?: number; hi?: number; weight?: number } {
+  const weight = latestWeight(data);
+  if (!weight) return { target: 100 };
+  return {
+    target: Math.round(weight * data.settings.proteinPerKg),
+    lo: Math.round(weight * 1.4),
+    hi: Math.round(weight * 2),
+    weight,
+  };
+}
+
+export function proteinOn(data: AppData, date: string): number {
+  return Math.round((data.food[date] ?? []).reduce((n, f) => n + f.protein, 0));
 }

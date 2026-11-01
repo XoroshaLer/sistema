@@ -1,13 +1,141 @@
 import { useRef, useState } from 'react';
-import { addCardio, exportData, importData, saveWeek, setExNote, setProfile, setSettings } from './actions';
-import { EX, dayOf } from './data/program';
+import {
+  addCardio,
+  createExercise,
+  exportData,
+  importData,
+  itemsFor,
+  replaceInSession,
+  saveWeek,
+  setExNote,
+  setItems,
+  setProfile,
+  setSettings,
+  type PlanTarget,
+} from './actions';
+import { EX, EXERCISE_ORDER, dayOf, type PlanItem } from './data/program';
+import { FoodSheet } from './food';
 import { addDays, fmtDay, iso, mondayOf, programWeek, today } from './lib/dates';
-import { num, parseNum, setText } from './lib/format';
+import { num, parseNum, repsText, setText } from './lib/format';
 import { XP, analyze } from './lib/logic';
 import type { Nav, SheetState } from './nav';
 import { CARDIO_LABEL } from './screens/Progress';
-import { resetData, type AppData, type CardioKind, type WeekCheck } from './store';
+import { getData, resetData, type AppData, type CardioKind, type WeekCheck } from './store';
 import { Chips, Icon, Label, Sheet, Stepper } from './ui';
+
+const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е').trim();
+
+/** All exercises: the user's own first, then the program; typing a new name creates one. */
+function LibrarySheet({ data, title, onPick, close }: { data: AppData; title: string; onPick: (id: string) => void; close: () => void }) {
+  const [q, setQ] = useState('');
+  const ids = [...data.customExercises.map((c) => c.id).reverse(), ...EXERCISE_ORDER];
+  const query = norm(q);
+  const list = ids.filter((id) => norm(EX(id)?.name ?? '').includes(query));
+  const exact = ids.some((id) => norm(EX(id)?.name ?? '') === query);
+  const choose = (id: string) => {
+    close();
+    onPick(id);
+  };
+  return (
+    <Sheet title={title} onClose={close}>
+      <div className="search">
+        <Icon name="search" size={18} />
+        <input className="input" placeholder="Найти или вписать своё" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Название упражнения" />
+      </div>
+      {query && !exact && (
+        <button type="button" className="row open" onClick={() => choose(createExercise(q))}>
+          <span className="sq"><Icon name="plus" size={18} /></span>
+          <span className="grow stack" style={{ gap: 0 }}>
+            <span className="title strong ellipsis">Создать «{q.trim()}»</span>
+            <span className="sub">Своё упражнение — рекорды будут считаться отдельно</span>
+          </span>
+        </button>
+      )}
+      <div className="stack">
+        {list.map((id) => (
+          <button key={id} type="button" className="row" onClick={() => choose(id)}>
+            <span className="sq">{dayOf(id) ?? <Icon name="user" size={16} />}</span>
+            <span className="grow title ellipsis" style={{ fontSize: 14 }}>{EX(id)?.name}</span>
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+
+function ItemSheet({ data, target, index, nav, close }: { data: AppData; target: PlanTarget; index: number; nav: Nav; close: () => void }) {
+  const items = itemsFor(data, target);
+  const item = items[index];
+  if (!item) return null;
+  const ex = EX(item.exId);
+  const patch = (p: Partial<PlanItem>) => setItems(target, items.map((it, k) => (k === index ? { ...it, ...p } : it)));
+  const move = (dir: 1 | -1) => {
+    const j = index + dir;
+    const next = [...items];
+    [next[index], next[j]] = [next[j], next[index]];
+    setItems(target, next);
+    nav.open({ type: 'item', target, index: j });
+  };
+  return (
+    <Sheet title={`Упражнение ${index + 1}`} onClose={close}>
+      <div className="stack" style={{ gap: 2 }}>
+        <span className="h2" style={{ fontSize: 18 }}>{ex?.name ?? 'Удалённое упражнение'}</span>
+        <span className="meta">{item.sets} × {repsText(item, ex)}</span>
+      </div>
+      <button
+        type="button"
+        className="btn"
+        onClick={() =>
+          nav.open({
+            type: 'library',
+            title: 'Заменить на',
+            onPick: (id) => {
+              setItems(target, itemsFor(getData(), target).map((it, k) => (k === index ? { ...it, exId: id, perSide: !!EX(id)?.per } : it)));
+              nav.open({ type: 'item', target, index });
+            },
+          })
+        }
+      >
+        <Icon name="swap" size={16} /> Заменить упражнение
+      </button>
+      <Stepper label="Подходы" value={item.sets} onChange={(v) => patch({ sets: Math.min(10, Math.max(1, v)) })} step={() => 1} min={1} />
+      <div className="grid2">
+        <Stepper label="Повторы от" value={item.repMin} onChange={(v) => patch({ repMin: v, repMax: Math.max(v, item.repMax) })} step={() => 1} min={1} />
+        <Stepper label="Повторы до" value={item.repMax} onChange={(v) => patch({ repMax: Math.max(v, item.repMin) })} step={() => 1} min={1} />
+      </div>
+      <div className="field">
+        <span>Как записывать подход</span>
+        <Chips
+          text
+          value={item.perSide ? 'side' : 'both'}
+          onChange={(v) => patch({ perSide: v === 'side' })}
+          options={[
+            { value: 'both', label: 'Целиком' },
+            { value: 'side', label: 'Л и П отдельно' },
+          ]}
+        />
+      </div>
+      <div className="grid2">
+        <button type="button" className="btn" disabled={index === 0} onClick={() => move(-1)}>
+          <Icon name="up" size={16} /> Выше
+        </button>
+        <button type="button" className="btn" disabled={index === items.length - 1} onClick={() => move(1)}>
+          <Icon name="down" size={16} /> Ниже
+        </button>
+      </div>
+      <button
+        type="button"
+        className="btn danger"
+        onClick={() => {
+          setItems(target, items.filter((_, k) => k !== index));
+          close();
+        }}
+      >
+        <Icon name="trash" size={16} /> Убрать из тренировки
+      </button>
+    </Sheet>
+  );
+}
 
 export function SheetHost({ sheet, data, nav, close }: { sheet: SheetState; data: AppData; nav: Nav; close: () => void }) {
   switch (sheet.type) {
@@ -40,6 +168,48 @@ export function SheetHost({ sheet, data, nav, close }: { sheet: SheetState; data
     }
     case 'picker':
       return <PickerSheet data={data} ids={sheet.ids} onPick={sheet.onPick} close={close} />;
+    case 'library':
+      return <LibrarySheet data={data} title={sheet.title} onPick={sheet.onPick} close={close} />;
+    case 'item':
+      return <ItemSheet data={data} target={sheet.target} index={sheet.index} nav={nav} close={close} />;
+    case 'replace': {
+      const s = data.sessions.find((x) => x.id === sheet.sessionId);
+      const from = s && EX(s.exercises[sheet.exIndex]?.exId ?? '');
+      const to = EX(sheet.exId);
+      if (!s || !from || !to) return null;
+      const scope = s.routineId ? `в «${s.title}»` : `в тренировках ${s.day} блока ${s.block}`;
+      return (
+        <Sheet title="Заменить упражнение" onClose={close}>
+          <div className="stack" style={{ gap: 4 }}>
+            <span className="sub">{from.name}</span>
+            <span className="h2" style={{ fontSize: 18 }}>→ {to.name}</span>
+          </div>
+          <button
+            type="button"
+            className="cta"
+            onClick={() => {
+              replaceInSession(s.id, sheet.exIndex, to.id, true);
+              close();
+              nav.toast('Заменено', `Дальше ${scope} тоже будет «${to.name}»`);
+            }}
+          >
+            Сегодня и дальше
+          </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              replaceInSession(s.id, sheet.exIndex, to.id, false);
+              close();
+            }}
+          >
+            Только сегодня
+          </button>
+        </Sheet>
+      );
+    }
+    case 'food':
+      return <FoodSheet data={data} close={close} toast={nav.toast} />;
     case 'confirm':
       return (
         <Sheet title={sheet.title} onClose={close}>
@@ -215,7 +385,7 @@ function PickerSheet({ data, ids, onPick, close }: { data: AppData; ids: string[
                 close();
               }}
             >
-              <span className="sq">{dayOf(id)}</span>
+              <span className="sq">{dayOf(id) ?? <Icon name="user" size={16} />}</span>
               <span className="grow stack" style={{ gap: 0 }}>
                 <span className="title ellipsis" style={{ fontSize: 14 }}>{ex.name}</span>
                 <span className="sub">{setText(a.best.get(id)!, ex)}</span>
@@ -315,7 +485,7 @@ function SettingsSheet({ data, nav, close }: { data: AppData; nav: Nav; close: (
       <Label>Как растёт уровень</Label>
       <div className="note-box" style={{ flexDirection: 'column', gap: 4 }}>
         <span>Подход +{XP.set} · упражнение целиком +{XP.exercise} · рекорд +{XP.pr} · тренировка +{XP.workout}</span>
-        <span>Кардио +1 за минуту · белок 3/3 +{XP.protein} · итоги недели +{XP.week}</span>
+        <span>Кардио +1 за минуту · белок по норме за день +{XP.protein} · итоги недели +{XP.week}</span>
         <span>Сила — рекорды, выносливость — минуты кардио, дисциплина — завершённые тренировки.</span>
       </div>
 

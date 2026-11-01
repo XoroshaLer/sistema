@@ -1,9 +1,21 @@
 import { useMemo } from 'react';
-import { setProtein, startSession } from '../actions';
-import { DAYS, DAY_TITLE, DAY_WEEKDAY, EX, blockOf, planFor } from '../data/program';
+import { startSession } from '../actions';
+import { DAYS, DAY_TITLE, DAY_WEEKDAY, EX, blockOf } from '../data/program';
 import { fmtDay, programWeek, rawWeek, today, weekday, WD_FULL } from '../lib/dates';
 import { plural } from '../lib/format';
-import { analyze, cardioTarget, cardioWeek, doneDays, estimateMinutes, estimateXp, nextDay } from '../lib/logic';
+import {
+  analyze,
+  cardioTarget,
+  cardioWeek,
+  dayPlan,
+  doneDays,
+  estimateMinutes,
+  estimateXp,
+  nextDay,
+  proteinOn,
+  proteinTarget,
+  sessionPhoto,
+} from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData } from '../store';
 import { Bar, Check, Hero, Icon, Label, SegBar, TopBar } from '../ui';
@@ -17,10 +29,11 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
   const done = doneDays(data, week);
   const active = data.activeId ? data.sessions.find((s) => s.id === data.activeId) : undefined;
   const next = nextDay(data, week);
-  const plan = next ? planFor(blockOf(week), next) : [];
+  const plan = next ? dayPlan(data, blockOf(week), next) : [];
   const cardio = cardioWeek(data, week);
   const target = cardioTarget(week);
-  const protein = data.protein[t] ?? 0;
+  const protein = proteinOn(data, t);
+  const proteinGoal = proteinTarget(data).target;
   const wd = weekday(t);
   const checkWeek = wd === 0 ? week : wd <= 2 && week > 1 && !data.weeks[String(week - 1)] ? week - 1 : null;
 
@@ -63,9 +76,19 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
 
       {active ? (
         <>
-          <Hero day={active.day}>
+          <Hero day={sessionPhoto(active)}>
             <Label>Тренировка идёт</Label>
-            <div className="h1">День {active.day}<br />{DAY_TITLE[active.day]}</div>
+            <div className="h1">
+              {active.day && !active.routineId ? (
+                <>
+                  День {active.day}
+                  <br />
+                  {DAY_TITLE[active.day]}
+                </>
+              ) : (
+                active.title
+              )}
+            </div>
             <div className="meta">
               {active.exercises.filter((e) => e.sets.length).length} / {active.exercises.length} упражнений
             </div>
@@ -86,7 +109,7 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
             </div>
             <div className="divider" style={{ width: '62%' }} />
             <div className="sub">
-              Первое: {plan[0]?.name}
+              Первое: {EX(plan[0]?.exId ?? '')?.name ?? '—'}
               <br />
               По плану: {WD_FULL[DAY_WEEKDAY[next]]}
             </div>
@@ -118,11 +141,14 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
           <span className="val">{cardio} / {target} мин</span>
           <Check on={cardio >= target} />
         </button>
-        <button type="button" className="row with-check" onClick={() => setProtein(t, (protein + 1) % 4)} aria-label={`Белок в каждом приёме: ${protein} из 3. Нажми, чтобы отметить приём`}>
+        <button type="button" className="row with-check" onClick={() => nav.open({ type: 'food' })}>
           <span className="sq"><Icon name="bowl" size={18} /></span>
-          <span className={`title grow${protein >= 3 ? ' muted' : ''}`}>Белок в каждом приёме</span>
-          <span className="val">{protein} / 3</span>
-          <Check on={protein >= 3} />
+          <span className="grow stack" style={{ gap: 6, paddingRight: 4 }}>
+            <span className="title">Белок за день</span>
+            <Bar value={protein / proteinGoal} />
+          </span>
+          <span className="val">{protein} / {proteinGoal} г</span>
+          <Check on={protein >= proteinGoal} />
         </button>
         {checkWeek !== null && (
           <button type="button" className="row with-check" onClick={() => nav.open({ type: 'week', week: checkWeek })}>

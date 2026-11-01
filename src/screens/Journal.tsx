@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { deleteCardio, deleteSession } from '../actions';
-import { DAY_TITLE, EX } from '../data/program';
+import { EX } from '../data/program';
 import { WD_SHORT, addDays, dayOfMonth, fmtDay, fmtMonth, programWeek, today, weekday } from '../lib/dates';
 import { plural, setText } from '../lib/format';
-import { analyze, bestOf, sessionXp } from '../lib/logic';
+import { analyze, bestOf, sessionLetter, sessionTitle, sessionXp, setCount } from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData, Cardio, Session, WeekCheck } from '../store';
 import { Check, Icon, Label, Seg, TopBar } from '../ui';
@@ -67,7 +67,7 @@ export function JournalScreen({ data, nav }: { data: AppData; nav: Nav }) {
       />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 4, textAlign: 'center' }}>
         {days.map((d) => {
-          const letters = data.sessions.filter((s) => s.date === d && s.finishedAt).map((s) => s.day).join('');
+          const letters = data.sessions.filter((s) => s.date === d && s.finishedAt).map(sessionLetter).join('');
           const hasCardio = data.cardio.some((c) => c.date === d);
           const isToday = d === t;
           const active = !!letters || hasCardio;
@@ -104,15 +104,15 @@ export function JournalScreen({ data, nav }: { data: AppData; nav: Nav }) {
             if (e.kind === 'workout') {
               const s = e.s;
               const isOpen = open === s.id;
-              const sets = s.exercises.reduce((n, x) => n + x.sets.length, 0);
+              const sets = s.exercises.reduce((n, x) => n + setCount(x.sets), 0);
               const minutes = s.finishedAt ? Math.round((s.finishedAt - s.startedAt) / 60000) : null;
               return (
                 <div key={s.id} className={`row${isOpen ? ' open' : ''}`} style={{ flexDirection: 'column', alignItems: 'stretch', padding: 0, gap: 0 }}>
                   <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : s.id)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '3px 12px 3px 3px', background: 'none', border: 0, textAlign: 'left', width: '100%' }}>
-                    <span className="sq lg">{s.day}</span>
+                    <span className="sq lg">{sessionLetter(s)}</span>
                     <span className="grow stack" style={{ gap: 1 }}>
                       <span className="date">{fmtDay(s.date)}{s.finishedAt ? '' : ' · идёт'}</span>
-                      <span className="title strong">Тренировка {s.day} · {DAY_TITLE[s.day].toLowerCase()}</span>
+                      <span className="title strong ellipsis">{sessionTitle(s)}</span>
                       <span className="meta-line">
                         {minutes !== null ? `${minutes} мин · ` : ''}{sets} {plural(sets, 'подход', 'подхода', 'подходов')} · +{sessionXp(s, a.prs)} XP
                       </span>
@@ -150,7 +150,7 @@ export function JournalScreen({ data, nav }: { data: AppData; nav: Nav }) {
                             nav.open({
                               type: 'confirm',
                               title: 'Удалить тренировку',
-                              text: `Тренировка ${s.day}, ${fmtDay(s.date).toLowerCase()}: все подходы и заметки удалятся, опыт пересчитается.`,
+                              text: `${sessionTitle(s)}, ${fmtDay(s.date).toLowerCase()}: все подходы и заметки удалятся, опыт пересчитается.`,
                               action: 'Удалить',
                               danger: true,
                               onConfirm: () => deleteSession(s.id),
