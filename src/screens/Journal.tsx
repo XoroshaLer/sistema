@@ -6,7 +6,7 @@ import { plural, setText } from '../lib/format';
 import { analyze, bestOf, sessionLetter, sessionTitle, sessionXp, setCount } from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData, Cardio, Session, WeekCheck } from '../store';
-import { Check, Icon, Label, Seg, TopBar } from '../ui';
+import { Check, Icon, Label, Seg, TopBar, MenuButton } from '../ui';
 import { CARDIO_LABEL } from './Progress';
 
 type Filter = 'all' | 'workout' | 'cardio' | 'summary';
@@ -46,7 +46,7 @@ export function JournalScreen({ data, nav }: { data: AppData; nav: Nav }) {
   return (
     <>
       <TopBar
-        left="Журнал"
+        left={<MenuButton label="Тренировки" onOpen={nav.menu} />}
         mid={fmtMonth(t)}
         right={
           <button type="button" className="icon-btn" aria-label="Добавить запись" onClick={() => nav.open({ type: 'add' })}>

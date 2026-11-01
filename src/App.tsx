@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { PlanTarget } from './actions';
+import { setSettings, type PlanTarget } from './actions';
+import { Drawer } from './drawer';
+import { FinanceRoot } from './finance/screens';
 import { analyze } from './lib/logic';
 import { WorkoutEditor } from './screens/Editor';
-import type { Nav, SheetState, Tab } from './nav';
+import type { FinTab, Module, Nav, SheetState, Tab } from './nav';
 import { JournalScreen } from './screens/Journal';
 import { Onboarding } from './screens/Onboarding';
 import { ProgressScreen } from './screens/Progress';
@@ -20,9 +22,19 @@ const TABS: { tab: Tab; label: string; icon: IconName }[] = [
   { tab: 'journal', label: 'Журнал', icon: 'book' },
 ];
 
+const FIN_TABS: { tab: FinTab; label: string; icon: IconName }[] = [
+  { tab: 'overview', label: 'Обзор', icon: 'home' },
+  { tab: 'budget', label: 'Бюджет', icon: 'pie' },
+  { tab: 'goals', label: 'Цели', icon: 'target' },
+  { tab: 'spend', label: 'Траты', icon: 'receipt' },
+];
+
 export function App() {
   const data = useData();
+  const [module, setModule] = useState<Module>(data.activeId ? 'training' : data.settings.module ?? 'training');
   const [tab, setTab] = useState<Tab>(data.activeId ? 'workout' : 'status');
+  const [finTab, setFinTab] = useState<FinTab>('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const [toast, setToast] = useState<{ title: string; text?: string; id: number } | null>(null);
   const [summaryId, setSummaryId] = useState<string | null>(null);
@@ -32,6 +44,7 @@ export function App() {
   const nav: Nav = useMemo(
     () => ({
       go: (t) => {
+        setModule('training');
         setTab(t);
         setSheet(null);
         if (t !== 'workout') {
@@ -39,12 +52,27 @@ export function App() {
           setEditing(null);
         }
       },
-      open: setSheet,
+      open: (s) => {
+        setMenuOpen(false);
+        setSheet(s);
+      },
       toast: (title, text) => setToast({ title, text, id: Date.now() }),
       finished: setSummaryId,
       edit: (target) => {
         setEditing(target);
         if (target) setTab('workout');
+      },
+      menu: () => setMenuOpen(true),
+      switchModule: (m) => {
+        setModule(m);
+        setMenuOpen(false);
+        setSheet(null);
+        setSettings({ module: m });
+      },
+      goFin: (t) => {
+        setModule('finance');
+        setFinTab(t);
+        setSheet(null);
       },
     }),
     [],
@@ -71,7 +99,7 @@ export function App() {
 
   useEffect(() => {
     contentRef.current?.scrollTo(0, 0);
-  }, [tab, summaryId, editing, active?.id, active?.cursor]);
+  }, [module, tab, finTab, summaryId, editing, active?.id, active?.cursor]);
 
   if (!data.profile) {
     return (
@@ -84,9 +112,11 @@ export function App() {
     );
   }
 
-  const inWorkout = tab === 'workout' && !!active;
+  const inWorkout = module === 'training' && tab === 'workout' && !!active;
+  const finSetup = module === 'finance' && !data.finance?.setupDone;
   let body: ReactNode;
-  if (tab === 'status') body = <StatusScreen data={data} nav={nav} />;
+  if (module === 'finance') body = <FinanceRoot data={data} tab={finTab} nav={nav} />;
+  else if (tab === 'status') body = <StatusScreen data={data} nav={nav} />;
   else if (tab === 'progress') body = <ProgressScreen data={data} nav={nav} />;
   else if (tab === 'journal') body = <JournalScreen data={data} nav={nav} />;
   else if (active) body = <WorkoutActive key={active.id} data={data} session={active} nav={nav} />;
@@ -94,22 +124,32 @@ export function App() {
   else if (summaryId) body = <WorkoutSummary data={data} sessionId={summaryId} nav={nav} onClose={() => setSummaryId(null)} />;
   else body = <WorkoutPick data={data} nav={nav} />;
 
+  const hideNav = inWorkout || finSetup;
+
   return (
     <div className="app">
       <Topo />
-      <main ref={contentRef} className={`content${inWorkout ? ' no-nav' : ''}`}>
+      <main ref={contentRef} className={`content${hideNav ? ' no-nav' : ''}`}>
         {body}
       </main>
-      {!inWorkout && (
+      {!hideNav && (
         <nav className="nav" aria-label="Разделы">
-          {TABS.map((t) => (
-            <button key={t.tab} type="button" className={tab === t.tab ? 'on' : ''} aria-current={tab === t.tab ? 'page' : undefined} onClick={() => nav.go(t.tab)}>
-              <Icon name={t.icon} size={22} stroke={1.6} />
-              {t.label.toUpperCase()}
-            </button>
-          ))}
+          {module === 'finance'
+            ? FIN_TABS.map((t) => (
+                <button key={t.tab} type="button" className={finTab === t.tab ? 'on' : ''} aria-current={finTab === t.tab ? 'page' : undefined} onClick={() => nav.goFin(t.tab)}>
+                  <Icon name={t.icon} size={22} stroke={1.6} />
+                  {t.label.toUpperCase()}
+                </button>
+              ))
+            : TABS.map((t) => (
+                <button key={t.tab} type="button" className={tab === t.tab ? 'on' : ''} aria-current={tab === t.tab ? 'page' : undefined} onClick={() => nav.go(t.tab)}>
+                  <Icon name={t.icon} size={22} stroke={1.6} />
+                  {t.label.toUpperCase()}
+                </button>
+              ))}
         </nav>
       )}
+      {menuOpen && <Drawer data={data} module={module} nav={nav} close={() => setMenuOpen(false)} />}
       {sheet && <SheetHost sheet={sheet} data={data} nav={nav} close={() => setSheet(null)} />}
       {toast && (
         <div className="toast" role="status" key={toast.id}>

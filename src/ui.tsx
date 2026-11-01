@@ -6,7 +6,8 @@ import { DAY_PHOTO } from './photos';
 export type IconName =
   | 'user' | 'dumbbell' | 'chart' | 'book' | 'gear' | 'check' | 'left' | 'right' | 'down'
   | 'plus' | 'download' | 'upload' | 'lock' | 'pulse' | 'bowl' | 'calendar' | 'ruler'
-  | 'pen' | 'trash' | 'clock' | 'target' | 'info' | 'trend' | 'walk' | 'x' | 'skip' | 'swap' | 'up' | 'search' | 'home';
+  | 'pen' | 'trash' | 'clock' | 'target' | 'info' | 'trend' | 'walk' | 'x' | 'skip' | 'swap' | 'up' | 'search' | 'home'
+  | 'menu' | 'wallet' | 'briefcase' | 'shield' | 'receipt' | 'pie' | 'coins' | 'percent';
 
 const PATHS: Record<IconName, ReactNode> = {
   user: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>),
@@ -39,7 +40,25 @@ const PATHS: Record<IconName, ReactNode> = {
   up: <path d="M6 15l6-6 6 6" />,
   search: (<><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></>),
   home: <path d="M4 11l8-6 8 6v9h-5v-6H9v6H4z" />,
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  wallet: (<><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M15 12.5h3M6 6V5a2 2 0 0 1 2-2h9" /></>),
+  briefcase: (<><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M9 7V5h6v2" /></>),
+  shield: <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" />,
+  receipt: (<><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6" /></>),
+  pie: (<><circle cx="12" cy="12" r="9" /><path d="M12 3v9h9" /></>),
+  coins: (<><ellipse cx="9" cy="7" rx="6" ry="3" /><path d="M3 7v4c0 1.7 2.7 3 6 3s6-1.3 6-3V7M9 14v3c0 1.7 2.7 3 6 3s6-1.3 6-3v-4c0-1.7-2.7-3-6-3" /></>),
+  percent: <path d="M19 5L5 19M7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />,
 };
+
+/** «≡ МОДУЛЬ» in the top bar of a module's main screens; opens the side menu. */
+export function MenuButton({ label, onOpen }: { label: string; onOpen: () => void }) {
+  return (
+    <button type="button" className="t-left" onClick={onOpen} aria-label={`Меню модулей. Сейчас: ${label}`}>
+      <Icon name="menu" size={22} />
+      {label}
+    </button>
+  );
+}
 
 export function Icon({ name, size = 20, stroke = 1.8, style }: { name: IconName; size?: number; stroke?: number; style?: CSSProperties }) {
   return (

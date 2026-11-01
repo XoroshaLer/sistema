@@ -24,7 +24,7 @@ import {
 } from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData, Session, SetLog } from '../store';
-import { Check, Chips, Hero, Icon, Label, Stepper, TopBar, weightStep } from '../ui';
+import { Check, Chips, Hero, Icon, Label, Stepper, TopBar, weightStep, MenuButton } from '../ui';
 
 const RIR_OPTIONS = [0, 1, 2, 3, 4].map((v) => ({ value: v, label: rirText(v) }));
 const SIDE_NAME = { L: 'левая', R: 'правая' } as const;
@@ -40,7 +40,7 @@ export function WorkoutPick({ data, nav }: { data: AppData; nav: Nav }) {
   const done = doneDays(data, week);
   return (
     <>
-      <TopBar left="Тренировка" mid={`Неделя ${week} · блок ${block}`} />
+      <TopBar left={<MenuButton label="Тренировки" onOpen={nav.menu} />} mid={`Неделя ${week} · блок ${block}`} />
       <Label>Программа</Label>
       <div className="stack">
         {DAYS.map((d) => {

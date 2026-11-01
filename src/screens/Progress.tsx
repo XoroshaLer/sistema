@@ -7,7 +7,7 @@ import { num, setText } from '../lib/format';
 import { analyze, cardioTarget, cardioWeek, weeklyBest } from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData, CardioKind, WeekCheck } from '../store';
-import { Bar, Check, Icon, Label, Seg, TopBar } from '../ui';
+import { Bar, Check, Icon, Label, Seg, TopBar, MenuButton } from '../ui';
 
 type Tab = 'str' | 'body' | 'cardio';
 
@@ -25,7 +25,7 @@ export function ProgressScreen({ data, nav }: { data: AppData; nav: Nav }) {
   return (
     <>
       <TopBar
-        left="Прогресс"
+        left={<MenuButton label="Тренировки" onOpen={nav.menu} />}
         mid={`Блок ${blockOf(week)} · нед. ${week}`}
         right={
           <button

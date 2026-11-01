@@ -14,6 +14,7 @@ import {
   type PlanTarget,
 } from './actions';
 import { EX, EXERCISE_ORDER, dayOf, type PlanItem } from './data/program';
+import { FinSheet } from './finance/forms';
 import { FoodSheet } from './food';
 import { addDays, fmtDay, iso, mondayOf, programWeek, today } from './lib/dates';
 import { num, parseNum, repsText, setText } from './lib/format';
@@ -211,6 +212,8 @@ export function SheetHost({ sheet, data, nav, close }: { sheet: SheetState; data
     }
     case 'food':
       return <FoodSheet data={data} close={close} toast={nav.toast} />;
+    case 'fin':
+      return <FinSheet key={`${sheet.form}:${sheet.id ?? sheet.name ?? ''}`} data={data} form={sheet.form} id={sheet.id} name={sheet.name} nav={nav} close={close} />;
     case 'confirm':
       return (
         <Sheet title={sheet.title} onClose={close}>

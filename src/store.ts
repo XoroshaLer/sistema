@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { setCustomExercises, type Block, type Day, type PlanItem } from './data/program';
+import { normalizeFinance, type Finance } from './finance/types';
 
 export interface SetLog {
   w: number;
@@ -79,6 +80,8 @@ export interface Settings {
   deficitPct: number;
   /** Own calorie goal; replaces the estimate when set. */
   kcalManual?: number;
+  /** Module opened last. */
+  module?: 'training' | 'finance';
 }
 
 export interface CustomExercise {
@@ -137,6 +140,8 @@ export interface AppData {
   customExercises: CustomExercise[];
   food: Record<string, FoodEntry[]>;
   foodPresets: FoodPreset[];
+  /** Created when the finance module is first opened. */
+  finance?: Finance;
 }
 
 const KEY = 'sistema.v1';
@@ -185,6 +190,7 @@ export function normalize(raw: unknown): AppData | null {
     customExercises: r.customExercises ?? [],
     food: r.food ?? {},
     foodPresets: r.foodPresets ?? [],
+    finance: r.finance ? normalizeFinance(r.finance) : undefined,
   } as AppData;
 }
 

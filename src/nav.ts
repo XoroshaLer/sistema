@@ -2,6 +2,9 @@ import type { PlanTarget } from './actions';
 import type { CardioKind } from './store';
 
 export type Tab = 'status' | 'workout' | 'progress' | 'journal';
+export type Module = 'training' | 'finance';
+export type FinTab = 'overview' | 'budget' | 'goals' | 'spend';
+export type FinForm = 'source' | 'obligation' | 'debt' | 'goal' | 'income' | 'task' | 'settings';
 
 export type SheetState =
   | { type: 'settings' }
@@ -17,7 +20,9 @@ export type SheetState =
   | { type: 'item'; target: PlanTarget; index: number }
   /** Swapping an exercise during a workout: just today, or from now on. */
   | { type: 'replace'; sessionId: string; exIndex: number; exId: string }
-  | { type: 'confirm'; title: string; text: string; action: string; danger?: boolean; onConfirm: () => void };
+  | { type: 'confirm'; title: string; text: string; action: string; danger?: boolean; onConfirm: () => void }
+  /** Finance forms; `id` edits an existing item, `name` pre-fills a new one. */
+  | { type: 'fin'; form: FinForm; id?: string; name?: string };
 
 export interface Nav {
   go: (tab: Tab) => void;
@@ -27,4 +32,8 @@ export interface Nav {
   finished: (sessionId: string) => void;
   /** Opens the workout editor; null closes it. */
   edit: (target: PlanTarget | null) => void;
+  /** Opens the side menu with the modules. */
+  menu: () => void;
+  switchModule: (m: Module) => void;
+  goFin: (tab: FinTab) => void;
 }

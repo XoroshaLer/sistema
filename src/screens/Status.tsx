@@ -21,7 +21,7 @@ import {
 } from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData } from '../store';
-import { Bar, Check, Hero, Icon, Label, SegBar, TopBar } from '../ui';
+import { Bar, Check, Hero, Icon, Label, SegBar, TopBar, MenuButton } from '../ui';
 
 export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
   const profile = data.profile!;
@@ -47,7 +47,7 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
   return (
     <>
       <TopBar
-        left="Статус"
+        left={<MenuButton label="Тренировки" onOpen={nav.menu} />}
         mid={fmtDay(t)}
         right={
           <button type="button" className="icon-btn" aria-label="Настройки" onClick={() => nav.open({ type: 'settings' })}>
