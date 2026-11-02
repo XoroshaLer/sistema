@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { setCustomExercises, type Block, type Day, type PlanItem } from './data/program';
 import { normalizeFinance, type Finance } from './finance/types';
+import { normalizeLearning, type Learning } from './learn/types';
 
 export interface SetLog {
   w: number;
@@ -81,7 +82,7 @@ export interface Settings {
   /** Own calorie goal; replaces the estimate when set. */
   kcalManual?: number;
   /** Module opened last. */
-  module?: 'training' | 'finance';
+  module?: 'training' | 'finance' | 'learn';
   /** How many program workouts a week she aims for; the four days go in a circle. */
   weeklyTarget: number;
 }
@@ -144,6 +145,8 @@ export interface AppData {
   foodPresets: FoodPreset[];
   /** Created when the finance module is first opened. */
   finance?: Finance;
+  /** Created with the first self-education entry. */
+  learning?: Learning;
 }
 
 const KEY = 'sistema.v1';
@@ -194,6 +197,7 @@ export function normalize(raw: unknown): AppData | null {
     food: r.food ?? {},
     foodPresets: r.foodPresets ?? [],
     finance: r.finance ? normalizeFinance(r.finance) : undefined,
+    learning: r.learning ? normalizeLearning(r.learning) : undefined,
   } as AppData;
 }
 

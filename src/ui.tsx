@@ -7,7 +7,8 @@ export type IconName =
   | 'user' | 'dumbbell' | 'chart' | 'book' | 'gear' | 'check' | 'left' | 'right' | 'down'
   | 'plus' | 'download' | 'upload' | 'lock' | 'pulse' | 'bowl' | 'calendar' | 'ruler'
   | 'pen' | 'trash' | 'clock' | 'target' | 'info' | 'trend' | 'walk' | 'x' | 'skip' | 'swap' | 'up' | 'search' | 'home'
-  | 'menu' | 'wallet' | 'briefcase' | 'shield' | 'receipt' | 'pie' | 'coins' | 'percent';
+  | 'menu' | 'wallet' | 'briefcase' | 'shield' | 'receipt' | 'pie' | 'coins' | 'percent'
+  | 'code' | 'bookOpen' | 'shelf' | 'quote' | 'link' | 'today';
 
 const PATHS: Record<IconName, ReactNode> = {
   user: (<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>),
@@ -48,6 +49,12 @@ const PATHS: Record<IconName, ReactNode> = {
   pie: (<><circle cx="12" cy="12" r="9" /><path d="M12 3v9h9" /></>),
   coins: (<><ellipse cx="9" cy="7" rx="6" ry="3" /><path d="M3 7v4c0 1.7 2.7 3 6 3s6-1.3 6-3V7M9 14v3c0 1.7 2.7 3 6 3s6-1.3 6-3v-4c0-1.7-2.7-3-6-3" /></>),
   percent: <path d="M19 5L5 19M7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />,
+  code: <path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14" />,
+  bookOpen: (<><path d="M12 7c-2-1.6-5-2-8-1.5V19c3-.5 6-.1 8 1.5 2-1.6 5-2 8-1.5V5.5c-3-.5-6-.1-8 1.5z" /><path d="M12 7v13.5" /></>),
+  shelf: (<><rect x="3" y="4" width="4" height="16" /><rect x="9" y="4" width="4" height="16" /><path d="M15 5.5l3.4-1 3.2 14.8-3.4 1z" /></>),
+  quote: <path d="M7 7h4v4c0 3-1.5 5-4 6M14 7h4v4c0 3-1.5 5-4 6" />,
+  link: (<><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>),
+  today: (<><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /><rect x="8" y="13" width="3" height="3" /></>),
 };
 
 /** «≡ МОДУЛЬ» in the top bar of a module's main screens; opens the side menu. */

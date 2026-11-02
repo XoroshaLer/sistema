@@ -74,7 +74,7 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
           <div className="tile"><span className="sub">Сила</span><b>{a.stats.str}</b></div>
           <div className="tile"><span className="sub">Выносливость</span><b>{a.stats.end}</b></div>
           <div className="tile"><span className="sub">Дисциплина</span><b>{a.stats.dis}</b></div>
-          <div className="tile locked"><span>Интеллект</span><Icon name="lock" size={16} /></div>
+          <div className="tile"><span className="sub">Интеллект</span><b>{a.stats.int}</b></div>
         </div>
       </section>
 

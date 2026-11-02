@@ -1,10 +1,13 @@
 import type { PlanTarget } from './actions';
+import type { BookStatus } from './learn/types';
 import type { CardioKind } from './store';
 
 export type Tab = 'status' | 'workout' | 'progress' | 'journal';
-export type Module = 'training' | 'finance';
+export type Module = 'training' | 'finance' | 'learn';
 export type FinTab = 'overview' | 'budget' | 'goals' | 'spend';
 export type FinForm = 'source' | 'obligation' | 'debt' | 'goal' | 'income' | 'task' | 'settings';
+export type LearnTab = 'today' | 'notes' | 'reading';
+export type LearnForm = 'note' | 'pages' | 'book' | 'finish';
 
 export type SheetState =
   | { type: 'settings' }
@@ -23,7 +26,9 @@ export type SheetState =
   | { type: 'replace'; sessionId: string; exIndex: number; exId: string }
   | { type: 'confirm'; title: string; text: string; action: string; danger?: boolean; onConfirm: () => void }
   /** Finance forms; `id` edits an existing item, `name` pre-fills a new one. */
-  | { type: 'fin'; form: FinForm; id?: string; name?: string };
+  | { type: 'fin'; form: FinForm; id?: string; name?: string }
+  /** Self-education forms; `id` is the note or the book, `draft` pre-fills a new note. */
+  | { type: 'learn'; form: LearnForm; id?: string; draft?: string; status?: BookStatus };
 
 export interface Nav {
   go: (tab: Tab) => void;
@@ -37,4 +42,5 @@ export interface Nav {
   menu: () => void;
   switchModule: (m: Module) => void;
   goFin: (tab: FinTab) => void;
+  goLearn: (tab: LearnTab) => void;
 }

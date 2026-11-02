@@ -1310,3 +1310,252 @@ textarea.input {
 .chart text.now {
   fill: var(--text);
 }
+
+/* Self-education */
+
+.t-date {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.cta:disabled {
+  opacity: 0.5;
+}
+
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-wrap .chip,
+.chip-scroll .chip {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chip.dashed {
+  border-style: dashed;
+  background: none;
+  color: var(--text-2);
+}
+
+.chip.dashed.on {
+  border-style: solid;
+  background: var(--sel);
+  color: #eef4fa;
+}
+
+.chip-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.chip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.note-card {
+  text-align: left;
+  color: inherit;
+  padding: 12px 14px;
+  gap: 6px;
+}
+
+.note-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.note-text {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #d5dbe1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.note-src {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.book-card,
+.book-row {
+  flex-direction: row;
+  gap: 14px;
+  text-align: left;
+  color: inherit;
+}
+
+.book-row {
+  padding: 12px;
+  gap: 12px;
+}
+
+.book-cover {
+  width: 44px;
+  height: 64px;
+  flex-shrink: 0;
+  border: 1px solid;
+  border-radius: 3px 5px 5px 3px;
+  padding: 5px 4px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: inset 3px 0 0 rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+.book-cover b {
+  margin-top: auto;
+  font-weight: 700;
+  font-size: 7px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.book-cover small {
+  font-size: 7px;
+  letter-spacing: 0.12em;
+}
+
+.book-cover.lg {
+  width: 88px;
+  height: 128px;
+  padding: 10px 8px;
+  border-radius: 4px 8px 8px 4px;
+  box-shadow: inset 4px 0 0 rgba(0, 0, 0, 0.25);
+}
+
+.book-cover.lg b {
+  font-size: 13px;
+  line-height: 1.05;
+}
+
+.book-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.book-title.lg {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.book-review {
+  font-size: 13px;
+  color: var(--text-3);
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line-2);
+}
+
+.stars {
+  margin-top: 2px;
+}
+
+.pchart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.pchart-goal {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed rgba(143, 194, 240, 0.45);
+  pointer-events: none;
+}
+
+.pchart-goal b {
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  padding-right: 4px;
+  background: var(--card);
+  font-weight: 500;
+  font-size: 10px;
+  color: var(--accent);
+}
+
+.pchart-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.pchart-col .now {
+  color: var(--text);
+}
+
+.pchart-col i {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--line-3);
+}
+
+.pchart-col i.on {
+  background: var(--accent-line);
+}
+
+.pchart-col i.some {
+  background: #24415c;
+}
+
+.pchart-days {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+}
+
+.pchart-days span {
+  flex: 1;
+  text-align: center;
+}
+
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 15px;
+}
+
+.check-line input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}

@@ -3,6 +3,7 @@
 
 import { DAYS, DAY_TITLE, EX, defaultPlan, type Block, type Day, type Exercise, type PlanItem } from '../data/program';
 import { financeXp } from '../finance/model';
+import { learnXp } from '../learn/model';
 import type { AppData, ExLog, Session, SetLog } from '../store';
 
 interface WR {
@@ -104,7 +105,7 @@ export interface Analysis {
   prCount: number;
   cardioMin: number;
   finished: number;
-  stats: { str: number; end: number; dis: number; cap: number };
+  stats: { str: number; end: number; dis: number; cap: number; int: number };
 }
 
 export function sessionXp(s: Session, prs: Set<string>): number {
@@ -158,6 +159,8 @@ export function analyze(data: AppData): Analysis {
   xp += Object.keys(data.weeks).length * XP.week;
   const fin = financeXp(data.finance);
   xp += fin.xp;
+  const learn = learnXp(data.learning);
+  xp += learn.xp;
 
   let level = 1;
   let rest = xp;
@@ -177,7 +180,7 @@ export function analyze(data: AppData): Analysis {
     prCount: prs.size,
     cardioMin,
     finished,
-    stats: { str: 10 + prs.size, end: 10 + Math.floor(cardioMin / 30), dis: 10 + finished, cap: 10 + fin.done },
+    stats: { str: 10 + prs.size, end: 10 + Math.floor(cardioMin / 30), dis: 10 + finished, cap: 10 + fin.done, int: 10 + learn.int },
   };
 }
 

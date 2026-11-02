@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { setSettings, type PlanTarget } from './actions';
 import { Drawer } from './drawer';
 import { FinanceRoot } from './finance/screens';
+import { LearnRoot } from './learn/screens';
 import { analyze } from './lib/logic';
 import { WorkoutEditor } from './screens/Editor';
-import type { FinTab, Module, Nav, SheetState, Tab } from './nav';
+import type { FinTab, LearnTab, Module, Nav, SheetState, Tab } from './nav';
 import { JournalScreen } from './screens/Journal';
 import { Onboarding } from './screens/Onboarding';
 import { ProgressScreen } from './screens/Progress';
@@ -29,11 +30,18 @@ const FIN_TABS: { tab: FinTab; label: string; icon: IconName }[] = [
   { tab: 'spend', label: 'Траты', icon: 'receipt' },
 ];
 
+const LEARN_TABS: { tab: LearnTab; label: string; icon: IconName }[] = [
+  { tab: 'today', label: 'Сегодня', icon: 'today' },
+  { tab: 'notes', label: 'Знания', icon: 'code' },
+  { tab: 'reading', label: 'Чтение', icon: 'bookOpen' },
+];
+
 export function App() {
   const data = useData();
   const [module, setModule] = useState<Module>(data.activeId ? 'training' : data.settings.module ?? 'training');
   const [tab, setTab] = useState<Tab>(data.activeId ? 'workout' : 'status');
   const [finTab, setFinTab] = useState<FinTab>('overview');
+  const [learnTab, setLearnTab] = useState<LearnTab>('today');
   const [menuOpen, setMenuOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState | null>(null);
   const [toast, setToast] = useState<{ title: string; text?: string; id: number } | null>(null);
@@ -74,6 +82,11 @@ export function App() {
         setFinTab(t);
         setSheet(null);
       },
+      goLearn: (t) => {
+        setModule('learn');
+        setLearnTab(t);
+        setSheet(null);
+      },
     }),
     [],
   );
@@ -99,7 +112,7 @@ export function App() {
 
   useEffect(() => {
     contentRef.current?.scrollTo(0, 0);
-  }, [module, tab, finTab, summaryId, editing, active?.id, active?.cursor]);
+  }, [module, tab, finTab, learnTab, summaryId, editing, active?.id, active?.cursor]);
 
   if (!data.profile) {
     return (
@@ -116,6 +129,7 @@ export function App() {
   const finSetup = module === 'finance' && !data.finance?.setupDone;
   let body: ReactNode;
   if (module === 'finance') body = <FinanceRoot data={data} tab={finTab} nav={nav} />;
+  else if (module === 'learn') body = <LearnRoot data={data} tab={learnTab} nav={nav} />;
   else if (tab === 'status') body = <StatusScreen data={data} nav={nav} />;
   else if (tab === 'progress') body = <ProgressScreen data={data} nav={nav} />;
   else if (tab === 'journal') body = <JournalScreen data={data} nav={nav} />;
@@ -133,8 +147,15 @@ export function App() {
         {body}
       </main>
       {!hideNav && (
-        <nav className="nav" aria-label="Разделы">
-          {module === 'finance'
+        <nav className="nav" aria-label="Разделы" style={module === 'learn' ? { gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' } : undefined}>
+          {module === 'learn'
+            ? LEARN_TABS.map((t) => (
+                <button key={t.tab} type="button" className={learnTab === t.tab ? 'on' : ''} aria-current={learnTab === t.tab ? 'page' : undefined} onClick={() => nav.goLearn(t.tab)}>
+                  <Icon name={t.icon} size={22} stroke={1.6} />
+                  {t.label.toUpperCase()}
+                </button>
+              ))
+            : module === 'finance'
             ? FIN_TABS.map((t) => (
                 <button key={t.tab} type="button" className={finTab === t.tab ? 'on' : ''} aria-current={finTab === t.tab ? 'page' : undefined} onClick={() => nav.goFin(t.tab)}>
                   <Icon name={t.icon} size={22} stroke={1.6} />

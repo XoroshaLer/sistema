@@ -15,6 +15,8 @@ import {
 } from './actions';
 import { EX, EXERCISE_ORDER, dayOf, type PlanItem } from './data/program';
 import { FinSheet } from './finance/forms';
+import { LearnSheet } from './learn/forms';
+import { learningOf, setPagesGoal } from './learn/model';
 import { FoodSheet } from './food';
 import { addDays, fmtDay, iso, mondayOf, programWeek, today } from './lib/dates';
 import { num, parseNum, repsText, setText } from './lib/format';
@@ -214,6 +216,8 @@ export function SheetHost({ sheet, data, nav, close }: { sheet: SheetState; data
       return <FoodSheet data={data} date={sheet.date} close={close} toast={nav.toast} />;
     case 'fin':
       return <FinSheet key={`${sheet.form}:${sheet.id ?? sheet.name ?? ''}`} data={data} form={sheet.form} id={sheet.id} name={sheet.name} nav={nav} close={close} />;
+    case 'learn':
+      return <LearnSheet key={`${sheet.form}:${sheet.id ?? ''}`} data={data} form={sheet.form} id={sheet.id} draft={sheet.draft} status={sheet.status} nav={nav} close={close} />;
     case 'confirm':
       return (
         <Sheet title={sheet.title} onClose={close}>
@@ -437,6 +441,10 @@ function SettingsSheet({ data, nav, close }: { data: AppData; nav: Nav; close: (
         <span>Тренировок в неделю</span>
         <Chips value={data.settings.weeklyTarget} onChange={(v) => setSettings({ weeklyTarget: v })} options={[2, 3, 4, 5].map((v) => ({ value: v, label: String(v) }))} />
         <span className="sub" style={{ fontSize: 12 }}>Дни A, B, C, D идут по кругу: после D снова A, в любой день недели.</span>
+      </div>
+      <div className="field">
+        <span>Чтение: страниц художественной в день</span>
+        <Chips value={learningOf(data).pagesGoal} onChange={setPagesGoal} options={[20, 30, 40, 50].map((v) => ({ value: v, label: String(v) }))} />
       </div>
 
       <Label>Отдых между подходами</Label>

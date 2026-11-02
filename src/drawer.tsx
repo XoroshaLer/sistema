@@ -2,7 +2,9 @@ import { useMemo } from 'react';
 import { exportData } from './actions';
 import { currentMonth, monthPlan, rub, spentIn, tasksOf } from './finance/model';
 import { programWeek, today } from './lib/dates';
+import { plural } from './lib/format';
 import { analyze, nextDay, weekWorkouts } from './lib/logic';
+import { currentBooks, learningOf, notesOn, pagesOn, streak } from './learn/model';
 import type { Module, Nav } from './nav';
 import type { AppData } from './store';
 import { Bar, Icon, Label, type IconName } from './ui';
@@ -19,9 +21,17 @@ export function Drawer({ data, module, nav, close }: { data: AppData; module: Mo
     finLine = f.months[month] ? `Свободно ${rub(Math.max(0, monthPlan(f, month).life - spentIn(f, month)))}${open ? ` · задач ${open}` : ''}` : 'Распредели бюджет месяца';
   } else if (f) finLine = 'Настройка не закончена';
 
+  const l = learningOf(data);
+  const s = streak(l);
+  const learnParts: string[] = [];
+  if (l.notes.length) learnParts.push(notesOn(l, today()).length ? `Серия ${s.current} ${plural(s.current, 'день', 'дня', 'дней')}` : 'Запиши, что узнала');
+  if (currentBooks(l).length) learnParts.push(`стр. ${pagesOn(l, today())} / ${l.pagesGoal}`);
+  const learnLine = learnParts.join(' · ') || 'Что узнала и дневник чтения';
+
   const modules: { id: Module; title: string; line: string; icon: IconName }[] = [
     { id: 'training', title: 'Тренировки', line: `Неделя ${week} · ${weekWorkouts(data, week)} из ${data.settings.weeklyTarget} · следующая ${nextDay(data)}`, icon: 'dumbbell' },
     { id: 'finance', title: 'Финансы', line: finLine, icon: 'wallet' },
+    { id: 'learn', title: 'Самообразование', line: learnLine, icon: 'bookOpen' },
   ];
 
   return (
@@ -56,10 +66,7 @@ export function Drawer({ data, module, nav, close }: { data: AppData; module: Mo
               </span>
             </button>
           ))}
-          {[
-            { title: 'Работа', line: 'Скоро', icon: 'briefcase' as const },
-            { title: 'Обучение', line: 'Скоро · откроет Интеллект', icon: 'book' as const },
-          ].map((m) => (
+          {[{ title: 'Работа', line: 'Скоро', icon: 'briefcase' as const }].map((m) => (
             <div key={m.title} className="drawer-item locked">
               <span className="sq"><Icon name={m.icon} size={20} /></span>
               <span className="grow stack" style={{ gap: 2 }}>
