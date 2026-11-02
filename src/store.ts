@@ -82,6 +82,8 @@ export interface Settings {
   kcalManual?: number;
   /** Module opened last. */
   module?: 'training' | 'finance';
+  /** How many program workouts a week she aims for; the four days go in a circle. */
+  weeklyTarget: number;
 }
 
 export interface CustomExercise {
@@ -153,6 +155,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sex: 'f',
   activity: 1.55,
   deficitPct: 10,
+  weeklyTarget: 3,
 };
 
 function empty(): AppData {

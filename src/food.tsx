@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { addFood, addFoodPreset, deleteFood, deleteFoodPreset, setSettings } from './actions';
-import { today } from './lib/dates';
+import { fmtDay, today } from './lib/dates';
 import { num, parseNum } from './lib/format';
 import { kcalOn, kcalTarget, proteinOn, proteinTarget } from './lib/logic';
 import type { AppData, FoodPreset, Meal } from './store';
@@ -77,8 +77,9 @@ function NumInput({ label, value, onCommit, placeholder }: { label: string; valu
   );
 }
 
-export function FoodSheet({ data, close, toast }: { data: AppData; close: () => void; toast: (title: string, text?: string) => void }) {
-  const t = today();
+export function FoodSheet({ data, date, close, toast }: { data: AppData; date?: string; close: () => void; toast: (title: string, text?: string) => void }) {
+  const t = date ?? today();
+  const isToday = t === today();
   const entries = data.food[t] ?? [];
   const protein = proteinOn(data, t);
   const kcal = kcalOn(data, t);
@@ -98,7 +99,7 @@ export function FoodSheet({ data, close, toast }: { data: AppData; close: () => 
   const kcalLeft = kGoal.target ? kGoal.target - kcal : undefined;
 
   return (
-    <Sheet title="Питание за день" onClose={close}>
+    <Sheet title={isToday ? 'Питание за день' : `Питание · ${fmtDay(t).toLowerCase()}`} onClose={close}>
       <div className="grid2">
         <div className="mini-stat" style={{ gap: 8 }}>
           <span className="caps" style={{ fontSize: 11 }}>Белок</span>

@@ -211,7 +211,7 @@ export function SheetHost({ sheet, data, nav, close }: { sheet: SheetState; data
       );
     }
     case 'food':
-      return <FoodSheet data={data} close={close} toast={nav.toast} />;
+      return <FoodSheet data={data} date={sheet.date} close={close} toast={nav.toast} />;
     case 'fin':
       return <FinSheet key={`${sheet.form}:${sheet.id ?? sheet.name ?? ''}`} data={data} form={sheet.form} id={sheet.id} name={sheet.name} nav={nav} close={close} />;
     case 'confirm':
@@ -433,6 +433,11 @@ function SettingsSheet({ data, nav, close }: { data: AppData; nav: Nav; close: (
         <input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} onBlur={saveProfile} />
       </label>
       <span className="sub" style={{ marginTop: -8 }}>Неделя считается с понедельника. Сейчас старт: {fmtDay(profile.startDate).toLowerCase()}.</span>
+      <div className="field">
+        <span>Тренировок в неделю</span>
+        <Chips value={data.settings.weeklyTarget} onChange={(v) => setSettings({ weeklyTarget: v })} options={[2, 3, 4, 5].map((v) => ({ value: v, label: String(v) }))} />
+        <span className="sub" style={{ fontSize: 12 }}>Дни A, B, C, D идут по кругу: после D снова A, в любой день недели.</span>
+      </div>
 
       <Label>Отдых между подходами</Label>
       <div className="field">

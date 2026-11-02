@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { exportData } from './actions';
 import { currentMonth, monthPlan, rub, spentIn, tasksOf } from './finance/model';
 import { programWeek, today } from './lib/dates';
-import { analyze, doneDays } from './lib/logic';
+import { analyze, nextDay, weekWorkouts } from './lib/logic';
 import type { Module, Nav } from './nav';
 import type { AppData } from './store';
 import { Bar, Icon, Label, type IconName } from './ui';
@@ -20,7 +20,7 @@ export function Drawer({ data, module, nav, close }: { data: AppData; module: Mo
   } else if (f) finLine = 'Настройка не закончена';
 
   const modules: { id: Module; title: string; line: string; icon: IconName }[] = [
-    { id: 'training', title: 'Тренировки', line: `Неделя ${week} · ${doneDays(data, week).size} из 4`, icon: 'dumbbell' },
+    { id: 'training', title: 'Тренировки', line: `Неделя ${week} · ${weekWorkouts(data, week)} из ${data.settings.weeklyTarget} · следующая ${nextDay(data)}`, icon: 'dumbbell' },
     { id: 'finance', title: 'Финансы', line: finLine, icon: 'wallet' },
   ];
 

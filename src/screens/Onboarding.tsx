@@ -18,7 +18,7 @@ export function Onboarding() {
       <Hero day="D">
         <Label>Пробуждение</Label>
         <div className="h1">Добро пожаловать<br />в Систему</div>
-        <div className="sub">16 недель, 4 тренировки в неделю. Каждый подход — опыт, каждая неделя — шаг к новому уровню.</div>
+        <div className="sub">16 недель, 4 тренировки по кругу. Каждый подход — опыт, каждая неделя — шаг к новому уровню.</div>
       </Hero>
       <label className="field">
         <span>Как к тебе обращаться</span>

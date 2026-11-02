@@ -1099,6 +1099,79 @@ textarea.input {
   align-items: center;
 }
 
+.cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  text-align: center;
+}
+
+.cal-head {
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding-bottom: 2px;
+}
+
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 46px;
+  padding: 5px 0;
+  border-radius: 8px;
+  border: 1px solid #1c232b;
+  background: none;
+  color: var(--text-2);
+}
+
+.cal-day.active {
+  background: var(--card-2);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.cal-day.today {
+  border-color: var(--accent-line);
+}
+
+.cal-day.sel {
+  background: var(--check-bg);
+  border-color: var(--accent-line);
+  color: #eef4fa;
+}
+
+.cal-day.outside {
+  opacity: 0.35;
+}
+
+.cal-wd {
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.cal-day.sel .cal-wd {
+  color: var(--check-ink);
+}
+
+.cal-num {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cal-mark {
+  min-height: 13px;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 13px;
+  color: var(--accent);
+}
+
 .drawer-backdrop {
   position: fixed;
   inset: 0;

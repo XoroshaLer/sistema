@@ -9,7 +9,8 @@ export type FinForm = 'source' | 'obligation' | 'debt' | 'goal' | 'income' | 'ta
 export type SheetState =
   | { type: 'settings' }
   | { type: 'add' }
-  | { type: 'food' }
+  /** Food log of a day; today when no date. */
+  | { type: 'food'; date?: string }
   | { type: 'cardio'; kind?: CardioKind }
   | { type: 'week'; week: number }
   | { type: 'note'; sessionId: string; exIndex: number }

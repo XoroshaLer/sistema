@@ -181,16 +181,26 @@ export function analyze(data: AppData): Analysis {
   };
 }
 
-/** Program days finished this week; the user's own workouts do not count here. */
-export function doneDays(data: AppData, week: number): Set<Day> {
-  const out = new Set<Day>();
-  for (const s of data.sessions) if (s.week === week && s.finishedAt && s.day && !s.routineId) out.add(s.day);
+function finishedProgram(data: AppData): Session[] {
+  return sortedSessions(data).filter((s) => s.finishedAt && s.day && !s.routineId);
+}
+
+/** Program workouts finished in this program week, whatever the day; own workouts do not count. */
+export function weekWorkouts(data: AppData, week: number): number {
+  return finishedProgram(data).filter((s) => s.week === week).length;
+}
+
+/** The latest finished session of each program day. */
+export function lastDoneByDay(data: AppData): Partial<Record<Day, Session>> {
+  const out: Partial<Record<Day, Session>> = {};
+  for (const s of finishedProgram(data)) out[s.day!] = s;
   return out;
 }
 
-export function nextDay(data: AppData, week: number): Day | undefined {
-  const done = doneDays(data, week);
-  return DAYS.find((d) => !done.has(d));
+/** Workouts go in a circle A → B → C → D → A, independent of weekdays. */
+export function nextDay(data: AppData): Day {
+  const last = finishedProgram(data).pop();
+  return last?.day ? DAYS[(DAYS.indexOf(last.day) + 1) % DAYS.length] : 'A';
 }
 
 export function planKey(block: Block, day: Day): string {

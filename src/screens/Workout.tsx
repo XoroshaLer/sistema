@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { addCardio, createRoutine, deleteSession, deleteSets, finishSession, logSet, setCursor, setSessionPlan, skipExercise, startPlan, startSession } from '../actions';
-import { DAYS, DAY_SHORT, DAY_TITLE, DAY_WEEKDAY, EX, blockOf, type Exercise } from '../data/program';
-import { WD_FULL, programWeek, today } from '../lib/dates';
+import { DAYS, DAY_SHORT, DAY_TITLE, EX, blockOf, type Exercise } from '../data/program';
+import { fmtDay, programWeek, today } from '../lib/dates';
 import { clock, num, plural, repsText, rirText, setText, setsText } from '../lib/format';
 import { beep, unlockAudio, useNow } from '../lib/hooks';
 import {
@@ -10,9 +10,10 @@ import {
   bestOf,
   better,
   dayPlan,
-  doneDays,
   groupSets,
   isComplete,
+  lastDoneByDay,
+  nextDay,
   planKey,
   planOf,
   previousFor,
@@ -33,30 +34,33 @@ function exerciseOf(id: string): Exercise {
   return EX(id) ?? { id, name: 'Удалённое упражнение', sets: 2, repMin: 10, repMax: 12, rir: 2, goal: '' };
 }
 
-/** Tab content when no workout is running: this week's program days and the user's own workouts. */
+/** Tab content when no workout is running: the four program days (done in a circle) and the user's own workouts. */
 export function WorkoutPick({ data, nav }: { data: AppData; nav: Nav }) {
   const week = programWeek(data.profile!.startDate, today());
   const block = blockOf(week);
-  const done = doneDays(data, week);
+  const last = lastDoneByDay(data);
+  const next = nextDay(data);
   return (
     <>
       <TopBar left={<MenuButton label="Тренировки" onOpen={nav.menu} />} mid={`Неделя ${week} · блок ${block}`} />
-      <Label>Программа</Label>
+      <Label>Программа · по кругу</Label>
       <div className="stack">
         {DAYS.map((d) => {
           const plan = dayPlan(data, block, d);
           const edited = !!data.plans[planKey(block, d)];
+          const prev = last[d];
           return (
             <div key={d} className="row-pair">
-              <button type="button" className="row with-check" onClick={() => startSession(d)}>
+              <button type="button" className={`row${d === next ? ' open' : ''}`} onClick={() => startSession(d)}>
                 <span className="sq lg">{d}</span>
                 <span className="grow stack" style={{ gap: 2 }}>
                   <span className="title strong">Тренировка {d} · {DAY_TITLE[d].toLowerCase()}</span>
                   <span className="sub">
-                    {plan.length} {plural(plan.length, 'упражнение', 'упражнения', 'упражнений')} · {edited ? 'твой вариант' : `по плану ${WD_FULL[DAY_WEEKDAY[d]]}`}
+                    {plan.length} {plural(plan.length, 'упражнение', 'упражнения', 'упражнений')}
+                    {edited ? ' · твой вариант' : ''} · {prev ? `была ${fmtDay(prev.date).toLowerCase()}` : 'ещё не было'}
                   </span>
                 </span>
-                {done.has(d) && <Check on />}
+                {d === next && <span className="badge">Следующая</span>}
               </button>
               <button type="button" className="sq lg edit-btn" aria-label={`Изменить тренировку ${d}`} onClick={() => nav.edit({ type: 'day', block, day: d })}>
                 <Icon name="pen" size={18} />

@@ -1,14 +1,13 @@
 import { useMemo } from 'react';
 import { startSession } from '../actions';
-import { DAYS, DAY_TITLE, DAY_WEEKDAY, EX, blockOf } from '../data/program';
-import { fmtDay, programWeek, rawWeek, today, weekday, WD_FULL } from '../lib/dates';
+import { DAY_TITLE, EX, blockOf } from '../data/program';
+import { fmtDay, programWeek, rawWeek, today } from '../lib/dates';
 import { plural } from '../lib/format';
 import {
   analyze,
   cardioTarget,
   cardioWeek,
   dayPlan,
-  doneDays,
   estimateMinutes,
   estimateXp,
   kcalOn,
@@ -18,6 +17,7 @@ import {
   proteinOn,
   proteinTarget,
   sessionPhoto,
+  weekWorkouts,
 } from '../lib/logic';
 import type { Nav } from '../nav';
 import type { AppData } from '../store';
@@ -29,18 +29,17 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
   const raw = rawWeek(profile.startDate, t);
   const week = programWeek(profile.startDate, t);
   const a = useMemo(() => analyze(data), [data]);
-  const done = doneDays(data, week);
+  const done = weekWorkouts(data, week);
+  const goal = data.settings.weeklyTarget;
   const active = data.activeId ? data.sessions.find((s) => s.id === data.activeId) : undefined;
-  const next = nextDay(data, week);
-  const plan = next ? dayPlan(data, blockOf(week), next) : [];
+  const next = nextDay(data);
+  const plan = dayPlan(data, blockOf(week), next);
   const cardio = cardioWeek(data, week);
   const target = cardioTarget(week);
   const protein = proteinOn(data, t);
   const proteinGoal = proteinTarget(data).target;
   const kcal = kcalOn(data, t);
   const kcalGoal = kcalTarget(data).target;
-  const wd = weekday(t);
-  const checkWeek = wd === 0 ? week : wd <= 2 && week > 1 && !data.weeks[String(week - 1)] ? week - 1 : null;
 
   const weekLine = raw < 1 ? `Старт через ${1 - raw} нед.` : raw > 16 ? 'Программа пройдена' : `Неделя ${week} / 16`;
 
@@ -59,9 +58,9 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
       <div className="stack">
         <div className="caps">
           <span>{weekLine}</span>
-          <span>Тренировки {done.size} / 4</span>
+          <span>Тренировки {done} / {goal}</span>
         </div>
-        <SegBar states={DAYS.map((d) => (done.has(d) ? 'on' : ''))} />
+        <SegBar states={Array.from({ length: Math.max(goal, done) }, (_, i) => (i < done ? 'on' : ''))} />
       </div>
 
       <section className="card">
@@ -104,20 +103,16 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
             Продолжить <Icon name="right" />
           </button>
         </>
-      ) : next ? (
+      ) : (
         <>
           <Hero day={next}>
-            <Label>{DAY_WEEKDAY[next] === wd ? 'Задание дня' : 'Следующая тренировка'}</Label>
+            <Label>{done >= goal ? 'Сверх плана недели' : 'Следующая тренировка'}</Label>
             <div className="h1">День {next}<br />{DAY_TITLE[next]}</div>
             <div className="meta">
               {plan.length} {plural(plan.length, 'упражнение', 'упражнения', 'упражнений')} · ~{estimateMinutes(plan)} мин · +{estimateXp(plan)} XP
             </div>
             <div className="divider" style={{ width: '62%' }} />
-            <div className="sub">
-              Первое: {EX(plan[0]?.exId ?? '')?.name ?? '—'}
-              <br />
-              По плану: {WD_FULL[DAY_WEEKDAY[next]]}
-            </div>
+            <div className="sub">Первое: {EX(plan[0]?.exId ?? '')?.name ?? '—'}</div>
           </Hero>
           <button
             type="button"
@@ -130,12 +125,6 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
             Начать тренировку <Icon name="right" />
           </button>
         </>
-      ) : (
-        <Hero day="C">
-          <Label>Неделя закрыта</Label>
-          <div className="h1">Все 4 тренировки<br />выполнены</div>
-          <div className="sub">Отдых — тоже часть системы. Новая неделя начнётся в понедельник.</div>
-        </Hero>
       )}
 
       <div className="stack">
@@ -163,14 +152,6 @@ export function StatusScreen({ data, nav }: { data: AppData; nav: Nav }) {
           </span>
           <Check on={protein >= proteinGoal && (!kcalGoal || kcalOnTarget(kcal, kcalGoal))} />
         </button>
-        {checkWeek !== null && (
-          <button type="button" className="row with-check" onClick={() => nav.open({ type: 'week', week: checkWeek })}>
-            <span className="sq"><Icon name="calendar" size={18} /></span>
-            <span className="title grow">Итоги недели {checkWeek}</span>
-            <span className="val">1 мин</span>
-            <Check on={!!data.weeks[String(checkWeek)]} />
-          </button>
-        )}
       </div>
     </>
   );
